@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Transfer Exchange</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="header" id="app-header"></header>
+  <main class="container">
+    <div class="back-link"><a href="index.html">← Back to Dashboard</a></div>
+    
+    <div class="card">
+      <h2>Internal Fund Transfer</h2>
+      <p class="small">Transfer funds between your Spot, Futures, and Options accounts.</p>
+      
+      <div style="margin-top:20px">
+        <div class="account-overview" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;margin-bottom:20px">
+          <div class="card" style="padding:12px">
+            <div class="small">Spot Account</div>
+            <div style="font-weight:700;font-size:16px;margin-top:5px">$<span id="spot-bal">0.00</span></div>
+          </div>
+          <div class="card" style="padding:12px">
+            <div class="small">Futures Account</div>
+            <div style="font-weight:700;font-size:16px;margin-top:5px">$<span id="futures-bal">0.00</span></div>
+          </div>
+          <div class="card" style="padding:12px">
+            <div class="small">Options Account</div>
+            <div style="font-weight:700;font-size:16px;margin-top:5px">$<span id="options-bal">0.00</span></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>From Account</label>
+          <select id="from-account" class="input">
+            <option value="spot">Spot Trading</option>
+            <option value="futures">Futures/Margin</option>
+            <option value="options">Options</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>To Account</label>
+          <select id="to-account" class="input">
+            <option value="futures">Futures/Margin</option>
+            <option value="options">Options</option>
+            <option value="spot">Spot Trading</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Amount to Transfer</label>
+          <input type="number" id="transfer-amt" class="input" placeholder="Enter amount">
+        </div>
+
+        <button class="cta cta-full" id="transfer-btn">Transfer Now</button>
+        <div id="transfer-msg" class="small" style="margin-top:10px;text-align:center"></div>
+
+        <div style="margin-top:30px" class="divider"></div>
+
+        <h3 style="margin-top:20px">Transfer History</h3>
+        <div id="transfers-list" style="margin-top:15px"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lightweight-charts@3.10.0/dist/lightweight-charts.standalone.production.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module">
+    import { state, getCurrentUser, addHistory, saveState } from './js/userData.js';
+
+    function renderHeader() {
+      const user = getCurrentUser();
+      document.getElementById('app-header').innerHTML = `
+        <div class="brand"><div class="logo">FX</div><div>
+          <div style="font-weight:800">Transfer Funds</div>
+          <div class="small">User: ${user.name}</div>
+        </div></div>
+        <div class="nav">
+          <span class="badge-sim">TRANSFER NOW</span>
+        </div>`;
+    }
+
+    function renderPage() {
+      const user = getCurrentUser();
+      const spotBal = user.spotBalance || user.balance * 0.6;
+      const futuresBal = user.futuresBalance || user.balance * 0.3;
+      const optionsBal = user.optionsBalance || user.balance * 0.1;
+      
+      document.getElementById('spot-bal').innerText = spotBal.toLocaleString(undefined, {minimumFractionDigits:2});
+      document.getElementById('futures-bal').innerText = futuresBal.toLocaleString(undefined, {minimumFractionDigits:2});
+      document.getElementById('options-bal').innerText = optionsBal.toLocaleString(undefined, {minimumFractionDigits:2});
+
+      // Render transfers
+      const userTransfers = (user.transfers || []);
+      const list = document.getElementById('transfers-list');
+      if (userTransfers.length === 0) {
+        list.innerHTML = '<p class="small">No transfers yet</p>';
+      } else {
+        list.innerHTML = userTransfers.slice(0, 10).map(t => `
+          <div class="card" style="margin-bottom:10px;padding:10px;background:#f0f4ff">
+            <div class="kv">
+              <div><strong>$${t.amount.toLocaleString()}</strong></div>
+              <div class="small">${t.from} → ${t.to}</div>
+            </div>
+            <div class="small" style="margin-top:5px">${new Date(t.ts).toLocaleString()}</div>
+          </div>
+        `).join('');
+      }
+    }
+
+    document.getElementById('transfer-btn').addEventListener('click', () => {
+      const amt = Number(document.getElementById('transfer-amt').value || 0);
+      const from = document.getElementById('from-account').value;
+      const to = document.getElementById('to-account').value;
+      const user = getCurrentUser();
+      
+      if (from === to) {
+        document.getElementById('transfer-msg').innerText = '❌ From and To accounts must be different';
+        document.getElementById('transfer-msg').style.color = '#d03030';
+        return;
+      }
+
+      if (amt <= 0) {
+        document.getElementById('transfer-msg').innerText = '❌ Enter a valid amount';
+        document.getElementById('transfer-msg').style.color = '#d03030';
+        return;
+      }
+
+      if (amt > user.balance) {
+        document.getElementById('transfer-msg').innerText = '❌ Insufficient balance';
+        document.getElementById('transfer-msg').style.color = '#d03030';
+        return;
+      }
+
+      // Record transfer
+      if (!user.transfers) user.transfers = [];
+      user.transfers.unshift({
+        from, to, amount: amt,
+        ts: new Date().toISOString()
+      });
+
+      addHistory(user.id, 'transfer.internal', {from, to, amount: amt});
+      saveState(state);
+
+      document.getElementById('transfer-msg').innerText = `✅ Transferred $${amt} from ${from} to ${to}`;
+      document.getElementById('transfer-msg').style.color = '#0b9d58';
+      document.getElementById('transfer-amt').value = '';
+      
+      renderPage();
+    });
+
+    renderHeader();
+    renderPage();
+  </script>
+</body>
+</html>

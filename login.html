@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Investment Prediction</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { margin: 0; padding: 0; background: var(--bg-primary); }
+    .login-wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .login-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1200px; width: 100%; }
+    .login-left { display: flex; flex-direction: column; justify-content: center; }
+    .login-header h1 { color: var(--accent-gold); font-size: 2.5rem; margin: 0 0 15px; font-weight: 800; }
+    .login-header p { color: var(--text-secondary); font-size: 1.1rem; margin: 0 0 30px; line-height: 1.6; }
+    .login-benefits { list-style: none; padding: 0; margin: 30px 0; }
+    .login-benefits li { color: var(--text-secondary); margin: 15px 0; padding-left: 30px; position: relative; }
+    .login-benefits li:before { content: "✓"; position: absolute; left: 0; color: var(--accent-gold); font-weight: bold; font-size: 1.2rem; }
+    
+    .login-right { display: flex; align-items: center; }
+    .login-card { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px; width: 100%; box-shadow: var(--shadow-lg); }
+    .login-card-header { text-align: center; margin-bottom: 30px; }
+    .login-logo { font-size: 3rem; margin-bottom: 15px; }
+    .login-card h2 { color: var(--text-primary); font-size: 1.8rem; margin: 0 0 10px; }
+    .login-card-subtitle { color: var(--text-secondary); font-size: 0.9rem; }
+    
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; color: var(--text-secondary); font-weight: 500; margin-bottom: 8px; font-size: 0.9rem; }
+    .form-group input { width: 100%; padding: 12px 15px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem; transition: all 0.3s; font-family: inherit; }
+    .form-group input:focus { outline: none; background: rgba(255,255,255,0.1); border-color: var(--accent-gold); }
+    .form-group input::placeholder { color: var(--text-muted); }
+    
+    .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--accent-gold) 0%, #d89b3f 100%); color: #0f0f23; border: none; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
+    .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(240, 173, 78, 0.3); }
+    
+    .demo-section { margin-top: 25px; padding-top: 25px; border-top: 1px solid var(--border-color); }
+    .demo-label { color: var(--text-secondary); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: block; }
+    .demo-user { background: rgba(56, 97, 251, 0.1); border: 1px solid rgba(56, 97, 251, 0.2); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--accent-primary); cursor: pointer; transition: all 0.2s; }
+    .demo-user:hover { background: rgba(56, 97, 251, 0.2); border-color: rgba(56, 97, 251, 0.4); }
+    .demo-user span { color: var(--text-secondary); }
+    
+    .sandbox-indicator { background: linear-gradient(135deg, rgba(240, 173, 78, 0.15) 0%, rgba(56, 97, 251, 0.15) 100%); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 20px; }
+    .sandbox-indicator-text { color: var(--accent-gold); font-size: 0.85rem; font-weight: 600; }
+    
+    .form-message { padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; display: none; }
+    .form-message.success { background: rgba(5, 178, 108, 0.1); border: 1px solid rgba(5, 178, 108, 0.3); color: #05b26c; }
+    .form-message.error { background: rgba(246, 70, 93, 0.1); border: 1px solid rgba(246, 70, 93, 0.3); color: #f6465d; }
+    
+    @media (max-width: 768px) {
+      .login-container { grid-template-columns: 1fr; gap: 30px; }
+      .login-left { display: none; }
+      .login-card { padding: 30px; }
+      .login-header h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-wrapper">
+    <div class="login-container">
+      <!-- Left Side - Features -->
+      <div class="login-left">
+        <div class="login-header">
+          <h1>Investment Prediction</h1>
+          <p>Professional Trading cryptocurrency Strategies</p>
+        </div>
+        <ul class="login-benefits">
+          <li>Practice with realistic market data</li>
+          <li>Test strategies risk-free</li>
+          <li>Real-time portfolio tracking</li>
+          <li>Advanced charting tools</li>
+          <li>Instant trade execution</li>
+        </ul>
+      </div>
+
+      <!-- Right Side - Login Form -->
+      <div class="login-right">
+        <div class="login-card">
+          <div class="login-card-header">
+            <div class="login-logo">📊</div>
+            <h2>Sign In</h2>
+            <p class="login-card-subtitle">Access your trading account</p>
+          </div>
+
+          <div class="sandbox-indicator">
+            <div class="sandbox-indicator-text">🔬 Login here</div>
+          </div>
+
+          <div class="form-message" id="form-message"></div>
+
+          <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <input type="email" id="login-email" placeholder="user@example.com" autocomplete="email">
+          </div>
+
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+          </div>
+
+          <button class="login-btn" id="login-btn">Sign In to Account</button>
+
+          <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.9rem;">
+            Don't have an account? <a href="signup.html" style="color: var(--accent-gold); text-decoration: none; font-weight: 600;">Create one</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="js/api-config.js"></script>
+  <script>
+    // Define elements globally so onclick handlers can access them
+    let emailEl = null;
+    let passwordEl = null;
+    let loginBtn = null;
+    let messageEl = null;
+    
+    window.autofill = function(email) {
+      if (emailEl) emailEl.value = email;
+      if (passwordEl) passwordEl.value = 'Demo123!';
+    };
+    
+    function showMessage(msg, type = 'error') {
+      if (messageEl) {
+        messageEl.className = `form-message ${type}`;
+        messageEl.innerText = msg;
+        messageEl.style.display = 'block';
+      }
+    }
+    
+    function hideMessage() {
+      if (messageEl) {
+        messageEl.style.display = 'none';
+      }
+    }
+    
+    async function handleLogin() {
+      console.log('handleLogin called');
+      if (!emailEl || !passwordEl) {
+        console.error('Form elements not available');
+        return;
+      }
+      
+      const email = emailEl.value.trim();
+      const password = passwordEl.value;
+      
+      console.log('Email:', email, 'Password length:', password.length);
+      
+      if (!email) {
+        showMessage('❌ Please enter your email');
+        return;
+      }
+      
+      if (!password) {
+        showMessage('❌ Please enter your password');
+        return;
+      }
+      
+      loginBtn.disabled = true;
+      loginBtn.innerText = 'Signing in...';
+      hideMessage();
+      
+      try {
+        const response = await AuthAPI.login({ email, password });
+        
+        if (response.requiresVerification) {
+          showMessage('⚠️ Please verify your email first. Redirecting...', 'error');
+          setTimeout(() => {
+            window.location.href = 'verify-email.html';
+          }, 1500);
+          return;
+        }
+        
+        showMessage('✅ Login successful! Redirecting...', 'success');
+        console.log('Redirecting to index.html');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 500);
+      } catch (error) {
+        showMessage(`❌ ${error.message || 'Login failed. Please try again.'}`);
+        loginBtn.disabled = false;
+        loginBtn.innerText = 'Sign In to Account';
+        passwordEl.value = '';
+      }
+    }
+    
+    function initLoginPage() {
+      console.log('initLoginPage called at readyState:', document.readyState);
+      messageEl = document.getElementById('form-message');
+      loginBtn = document.getElementById('login-btn');
+      emailEl = document.getElementById('login-email');
+      passwordEl = document.getElementById('login-password');
+      
+      console.log('Elements found - loginBtn:', !!loginBtn, 'emailEl:', !!emailEl, 'passwordEl:', !!passwordEl);
+      
+      if (!loginBtn || !emailEl || !passwordEl) {
+        console.error('Login elements not found!');
+        return;
+      }
+      
+      // Attach click handler
+      if (!loginBtn) {
+        console.error('loginBtn is null after init!');
+      } else {
+        console.log('loginBtn found, attaching listener');
+        loginBtn.addEventListener('click', handleLogin);
+      }
+
+      if (emailEl) {
+        emailEl.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handleLogin();
+          }
+        });
+      }
+
+      if (passwordEl) {
+        passwordEl.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handleLogin();
+          }
+        });
+      }
+    }
+    
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      console.log('DOM still loading, waiting for DOMContentLoaded');
+      document.addEventListener('DOMContentLoaded', initLoginPage);
+    } else {
+      console.log('DOM already ready, initializing immediately');
+      initLoginPage();
+    }
+    console.log('Login script module loaded');
+  </script>
+</body>
+</html>

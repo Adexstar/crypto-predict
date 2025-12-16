@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>History Trading</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="header" id="app-header"></header>
+  <main class="container">
+    <div class="back-link"><a href="index.html">← Back to Dashboard</a></div>
+    
+    <div class="qa-indicator" style="margin-bottom:20px">🔬 Transaction History Access</div>
+    
+    <div class="card">
+      <h2 class="card-title">Transaction History</h2>
+      <p class="card-subtitle">All account activity</p>
+      
+      <div style="margin-top:20px">
+        <div style="margin-bottom:15px">
+          <label>Filter by Type:</label>
+          <select id="filter-type" class="input" style="margin-top:5px">
+            <option value="">All Transactions</option>
+            <option value="deposit">Deposits</option>
+            <option value="withdraw">Withdrawals</option>
+            <option value="transfer">Transfers</option>
+            <option value="subscribe">Subscriptions</option>
+            <option value="profit">Profit</option>
+          </select>
+        </div>
+
+        <div id="history-list" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lightweight-charts@3.10.0/dist/lightweight-charts.standalone.production.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module">
+    import { state, getCurrentUser } from './js/userData.js';
+
+    function renderHeader() {
+      const user = getCurrentUser();
+      document.getElementById('app-header').innerHTML = `
+        <div class="brand"><div class="logo">FX</div><div>
+          <div style="font-weight:800">Transaction History</div>
+          <div class="small">User: ${user.name}</div>
+        </div></div>
+        <div class="nav">
+          <span class="badge-sim">HISTORY</span>
+        </div>`;
+    }
+
+    function renderHistory(filter = '') {
+      const user = getCurrentUser();
+      const list = document.getElementById('history-list');
+      
+      let history = user.history || [];
+      if (filter) {
+        history = history.filter(h => h.action.includes(filter));
+      }
+
+      if (history.length === 0) {
+        list.innerHTML = '<p class="small">No transactions</p>';
+        return;
+      }
+
+      list.innerHTML = history.map((h, idx) => {
+        const message = h.message || h.action.replace(/\./g, ' ').toUpperCase();
+        const time = new Date(h.ts).toLocaleString();
+        return `
+          <div class="card" style="padding:12px;background:${idx % 2 === 0 ? '#fff' : '#f8f8f8'}">
+            <div class="kv">
+              <div>
+                <strong>${message}</strong>
+                <div class="small">${time}</div>
+              </div>
+              <div style="text-align:right">
+                <div class="small">${new Date(h.ts).toLocaleString()}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    document.getElementById('filter-type').addEventListener('change', (e) => {
+      renderHistory(e.target.value);
+    });
+
+    renderHeader();
+    renderHistory();
+  </script>
+</body>
+</html>

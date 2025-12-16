@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Investment Prediction - Trading Learning Platform</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Modern Landing Page Styles */
+    body { margin: 0; padding: 0; background: var(--bg-primary); }
+    
+    /* Navigation */
+    .navbar { background: rgba(15, 15, 35, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 1000; }
+    .nav-container { max-width: 1400px; margin: 0 auto; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-brand { display: flex; align-items: center; gap: 15px; cursor: pointer; }
+    .nav-logo { font-size: 2rem; font-weight: 800; color: var(--accent-gold); }
+    .nav-title { color: var(--text-primary); font-weight: 700; font-size: 1rem; }
+    .nav-subtitle { color: var(--text-secondary); font-size: 0.75rem; }
+    .nav-menu { display: flex; align-items: center; gap: 30px; }
+    .nav-link { color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color 0.3s; }
+    .nav-link:hover { color: var(--accent-gold); }
+    .nav-btn-signin { background: linear-gradient(135deg, var(--accent-gold) 0%, #d89b3f 100%); color: #0f0f23; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s; }
+    .nav-btn-signin:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(240, 173, 78, 0.3); }
+    
+    @media (max-width: 768px) {
+      .nav-menu { gap: 15px; }
+      .nav-link { display: none; }
+    }
+    
+    /* Hero Section */
+    .hero { padding: 80px 20px; max-width: 1400px; margin: 0 auto; }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+    .hero-content h1 { color: var(--accent-gold); font-size: 3.5rem; margin: 0 0 20px; font-weight: 800; line-height: 1.2; }
+    .hero-content p { color: var(--text-secondary); font-size: 1.1rem; margin: 0 0 15px; line-height: 1.8; }
+    .hero-description { color: var(--text-muted); font-size: 1rem; margin: 0 0 30px; line-height: 1.8; max-width: 500px; }
+    
+    .hero-badge { background: linear-gradient(135deg, rgba(240, 173, 78, 0.15) 0%, rgba(56, 97, 251, 0.15) 100%); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin: 25px 0; font-weight: 600; color: var(--accent-gold); text-align: center; }
+    
+    .hero-stats { display: flex; gap: 40px; margin: 40px 0; }
+    .hero-stat { }
+    .hero-stat-num { color: var(--accent-gold); font-size: 2rem; font-weight: 800; }
+    .hero-stat-text { color: var(--text-secondary); font-size: 0.9rem; margin-top: 5px; }
+    
+    .hero-buttons { display: flex; gap: 15px; margin: 40px 0; }
+    .btn-large { padding: 15px 35px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s; border: none; cursor: pointer; font-size: 1rem; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent-gold) 0%, #d89b3f 100%); color: #0f0f23; }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(240, 173, 78, 0.4); }
+    .btn-secondary { background: transparent; color: var(--accent-gold); border: 2px solid var(--accent-gold); }
+    .btn-secondary:hover { background: rgba(240, 173, 78, 0.1); }
+    
+    .hero-right { display: flex; flex-direction: column; gap: 20px; }
+    .hero-card { background: var(--glass-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 25px; }
+    .hero-card-title { color: var(--text-primary); font-weight: 700; margin-bottom: 15px; }
+    .hero-card-stat { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .hero-card-stat-label { color: var(--text-secondary); font-size: 0.85rem; }
+    .hero-card-stat-value { color: var(--accent-gold); font-weight: 700; font-size: 1.3rem; }
+    
+    @media (max-width: 1024px) {
+      .hero-grid { grid-template-columns: 1fr; }
+      .hero-content h1 { font-size: 2.5rem; }
+    }
+    
+    /* Features Grid */
+    .features { padding: 80px 20px; background: linear-gradient(180deg, transparent 0%, rgba(56, 97, 251, 0.05) 100%); }
+    .section-container { max-width: 1400px; margin: 0 auto; }
+    .section-header { text-align: center; margin-bottom: 60px; }
+    .section-header h2 { color: var(--accent-gold); font-size: 2.5rem; margin: 0 0 15px; }
+    .section-subtitle { color: var(--text-secondary); font-size: 1.1rem; }
+    
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+    .feature-box { background: var(--glass-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 30px; transition: all 0.3s; }
+    .feature-box:hover { border-color: var(--accent-gold); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(240, 173, 78, 0.1); }
+    .feature-icon { font-size: 2.5rem; margin-bottom: 15px; }
+    .feature-box h3 { color: var(--text-primary); margin: 0 0 10px; font-size: 1.3rem; }
+    .feature-box p { color: var(--text-secondary); margin: 0 0 20px; line-height: 1.6; }
+    .feature-list { list-style: none; padding: 0; margin: 0; }
+    .feature-list li { color: var(--text-muted); margin: 8px 0; font-size: 0.9rem; }
+    
+    /* Pricing Section */
+    .pricing { padding: 80px 20px; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+    .pricing-card { background: var(--glass-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 35px; text-align: center; position: relative; transition: all 0.3s; }
+    .pricing-card.featured { border-color: var(--accent-gold); transform: scale(1.05); }
+    .pricing-badge { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: var(--accent-gold); color: #0f0f23; padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; }
+    .pricing-name { color: var(--text-primary); font-size: 1.5rem; margin: 0 0 10px; font-weight: 700; }
+    .pricing-desc { color: var(--text-secondary); font-size: 0.95rem; margin: 0 0 20px; }
+    .pricing-price { color: var(--accent-gold); font-size: 2rem; font-weight: 800; margin: 20px 0; }
+    .pricing-features { list-style: none; padding: 0; margin: 30px 0; text-align: left; }
+    .pricing-features li { color: var(--text-secondary); margin: 12px 0; padding-left: 25px; position: relative; }
+    .pricing-features li:before { content: "✓"; position: absolute; left: 0; color: var(--accent-success); font-weight: bold; }
+    .pricing-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--accent-gold) 0%, #d89b3f 100%); color: #0f0f23; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 20px; transition: all 0.3s; }
+    .pricing-btn:hover { transform: translateY(-2px); }
+    
+    /* Trust Section */
+    .trust-section { padding: 60px 20px; background: linear-gradient(180deg, rgba(56, 97, 251, 0.05) 0%, transparent 100%); }
+    .trust-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+    .trust-item { text-align: center; }
+    .trust-icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .trust-label { color: var(--text-secondary); font-weight: 600; }
+    
+    /* Footer */
+    .footer { background: rgba(10, 10, 25, 0.8); border-top: 1px solid var(--border-color); padding: 50px 20px 20px; margin-top: 80px; }
+    .footer-container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 30px; }
+    .footer-section h4 { color: var(--text-primary); margin: 0 0 15px; }
+    .footer-section a { color: var(--text-secondary); text-decoration: none; display: block; margin: 8px 0; font-size: 0.9rem; transition: color 0.3s; }
+    .footer-section a:hover { color: var(--accent-gold); }
+    .footer-bottom { text-align: center; color: var(--text-muted); font-size: 0.85rem; padding-top: 20px; border-top: 1px solid var(--border-color); }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand" onclick="window.location.href='landing.html'">
+        <div class="nav-logo">📊</div>
+        <div>
+          <div class="nav-title">Investment Prediction</div>
+          <div class="nav-subtitle">Learning Platform</div>
+        </div>
+      </div>
+      <div class="nav-menu">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#trading" class="nav-link">Trading Plans</a>
+        <a href="#security" class="nav-link">Security</a>
+        <a href="login.html" class="nav-btn-signin">Sign In</a>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="hero-content">
+        <h1>Learn Professional Trading</h1>
+        <p>Master trading strategies in a risk-free cryptocurrency environment with realistic tools and market data.</p>
+        <div class="hero-description">Practice with professional-grade features including real-time charts, instant execution, and advanced analytics.</div>
+        
+        <div class="hero-badge">🔬 100% Safe Environment — Zero Financial Risk</div>
+        
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hero-stat-num">5000+</div>
+            <div class="hero-stat-text">Active Learners</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num">200+</div>
+            <div class="hero-stat-text">Trading Pairs</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num">24/7</div>
+            <div class="hero-stat-text">Available</div>
+          </div>
+        </div>
+
+        <div class="hero-buttons">
+          <a href="login.html" class="btn-large btn-primary">Get Started Free</a>
+          <a href="#features" class="btn-large btn-secondary">Learn More</a>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="hero-card">
+          <div class="hero-card-title">BTC/USDT</div>
+          <div class="hero-card-stat">
+            <div class="hero-card-stat-label">Current Price</div>
+            <div class="hero-card-stat-value">$91,234</div>
+          </div>
+          <div class="hero-card-stat">
+            <div class="hero-card-stat-label">24h Change</div>
+            <div class="hero-card-stat-value">+3.42%</div>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <div class="hero-card-title">ETH/USDT</div>
+          <div class="hero-card-stat">
+            <div class="hero-card-stat-label">Current Price</div>
+            <div class="hero-card-stat-value">$2,345</div>
+          </div>
+          <div class="hero-card-stat">
+            <div class="hero-card-stat-label">24h Change</div>
+            <div class="hero-card-stat-value">+2.34%</div>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <div class="hero-card-title">SOL/USDT</div>
+          <div class="hero-card-stat">
+            <div class="hero-card-stat-label">Current Price</div>
+            <div class="hero-card-stat-value">$98.43</div>
+          </div>
+          <div class="hero-card-stat">
+            <div class="hero-card-stat-label">24h Change</div>
+            <div class="hero-card-stat-value">+5.12%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>Why Learn With Us</h2>
+        <p class="section-subtitle">Everything you need to master trading</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-box">
+          <div class="feature-icon">📊</div>
+          <h3>Professional Charts</h3>
+          <p>Advanced technical analysis tools with 100+ indicators and multiple timeframes</p>
+          <ul class="feature-list">
+            <li>✓ Real-time data feeds</li>
+            <li>✓ Drawing tools</li>
+            <li>✓ Custom indicators</li>
+          </ul>
+        </div>
+
+        <div class="feature-box">
+          <div class="feature-icon">⚡</div>
+          <h3>Instant Execution</h3>
+          <p>Experience realistic order processing with market and limit orders</p>
+          <ul class="feature-list">
+            <li>✓ Fast execution</li>
+            <li>✓ Multiple order types</li>
+            <li>✓ Risk management tools</li>
+          </ul>
+        </div>
+
+        <div class="feature-box">
+          <div class="feature-icon">🔒</div>
+          <h3>Safe Learning</h3>
+          <p>Practice trading without any real financial risk or commitment</p>
+          <ul class="feature-list">
+            <li>✓ 100% simulated</li>
+            <li>✓ No real money needed</li>
+            <li>✓ Unlimited practice</li>
+          </ul>
+        </div>
+
+        <div class="feature-box">
+          <div class="feature-icon">📈</div>
+          <h3>Portfolio Tracking</h3>
+          <p>Monitor your trading performance with detailed analytics and reports</p>
+          <ul class="feature-list">
+            <li>✓ Real-time PnL</li>
+            <li>✓ Performance metrics</li>
+            <li>✓ Trade history</li>
+          </ul>
+        </div>
+
+        <div class="feature-box">
+          <div class="feature-icon">💡</div>
+          <h3>AI Signals</h3>
+          <p>Get trading insights powered by machine learning algorithms</p>
+          <ul class="feature-list">
+            <li>✓ Market analysis</li>
+            <li>✓ Signal generation</li>
+            <li>✓ Custom alerts</li>
+          </ul>
+        </div>
+
+        <div class="feature-box">
+          <div class="feature-icon">🎓</div>
+          <h3>Learning Resources</h3>
+          <p>Access tutorials, guides, and webinars from trading experts</p>
+          <ul class="feature-list">
+            <li>✓ Video tutorials</li>
+            <li>✓ Trading guides</li>
+            <li>✓ Community support</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trading Plans Section -->
+  <section id="trading" class="pricing">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>Trading Plans</h2>
+        <p class="section-subtitle">Choose the right plan for your learning journey</p>
+      </div>
+
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <div class="pricing-name">Spot Trading</div>
+          <div class="pricing-desc">Buy & hold cryptocurrencies</div>
+          <div class="pricing-price">$0</div>
+          <ul class="pricing-features">
+            <li>200+ trading pairs</li>
+            <li>Real-time charts</li>
+            <li>Portfolio tracking</li>
+            <li>0.1% trading fee</li>
+            <li>24/7 trading</li>
+          </ul>
+          <button class="pricing-btn" onclick="window.location.href='login.html'">Start Now</button>
+        </div>
+
+        <div class="pricing-card featured">
+          <div class="pricing-badge">POPULAR</div>
+          <div class="pricing-name">AI Bot Trading</div>
+          <div class="pricing-desc">Automated strategies</div>
+          <div class="pricing-price">$9.99<span style="font-size:0.5em">/mo</span></div>
+          <ul class="pricing-features">
+            <li>Automated trading</li>
+            <li>AI optimization</li>
+            <li>Risk management</li>
+            <li>Daily reports</li>
+            <li>Priority support</li>
+          </ul>
+          <button class="pricing-btn" onclick="window.location.href='login.html'">Subscribe</button>
+        </div>
+
+        <div class="pricing-card">
+          <div class="pricing-name">Futures Trading</div>
+          <div class="pricing-desc">Trade with leverage</div>
+          <div class="pricing-price">$0</div>
+          <ul class="pricing-features">
+            <li>Up to 100x leverage</li>
+            <li>Perpetual contracts</li>
+            <li>Advanced orders</li>
+            <li>0.02% trading fee</li>
+            <li>Margin tools</li>
+          </ul>
+          <button class="pricing-btn" onclick="window.location.href='login.html'">Start Now</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security Section -->
+  <section id="security" class="trust-section">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>Built for Security</h2>
+        <p class="section-subtitle">Educational platform with enterprise-grade infrastructure</p>
+      </div>
+
+      <div class="trust-grid">
+        <div class="trust-item">
+          <div class="trust-icon">🔐</div>
+          <div class="trust-label">256-bit Encryption</div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">✓</div>
+          <div class="trust-label">ISO Certified</div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">⚡</div>
+          <div class="trust-label">99.99% Uptime</div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">🌍</div>
+          <div class="trust-label">Global CDN</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-section">
+        <h4>Platform</h4>
+        <a href="index.html">Dashboard</a>
+        <a href="login.html">Sign In</a>
+      </div>
+      <div class="footer-section">
+        <h4>Information</h4>
+        <a href="about.html">About Us</a>
+        <a href="terms.html">Terms</a>
+        <a href="privacy.html">Privacy</a>
+      </div>
+      <div class="footer-section">
+        <h4>Support</h4>
+        <a href="risk.html">Risk Disclosure</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2024 Investment Predictions All data are safe.</p>
+    </div>
+  </footer>
+</body>
+</html>

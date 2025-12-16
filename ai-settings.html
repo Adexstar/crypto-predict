@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Quant Settings - Crypto Trading</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="header" id="app-header"></header>
+  <main class="container">
+    <div class="back-link"><a href="index.html">← Back to Dashboard</a></div>
+    
+    <div class="qa-indicator" style="margin-bottom:20px">🤖 AI Quant Settings</div>
+    
+    <div class="card">
+      <h2 class="card-title">AI Quant Trading Bot</h2>
+      <p class="card-subtitle">Configure your automated trading assistant</p>
+      
+      <div style="margin-top:30px">
+        <!-- Current Status -->
+        <div id="ai-status-card" style="background:#f5f5f5;padding:20px;border-radius:8px;margin-bottom:30px">
+          <div class="kv">
+            <div>
+              <div style="font-size:14px;color:#666;margin-bottom:5px">AI Bot Status</div>
+              <div id="bot-status" style="font-size:18px;font-weight:700;color:#0b9d58">● ACTIVE</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:14px;color:#666;margin-bottom:5px">Subscription Amount</div>
+              <div id="sub-amount" style="font-size:18px;font-weight:700">$0.00</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trading Strategy -->
+        <div class="form-group">
+          <label>Select Trading Strategy</label>
+          <select id="strategy" class="input">
+            <option value="conservative">Conservative (Low Risk)</option>
+            <option value="moderate" selected>Moderate (Balanced)</option>
+            <option value="aggressive">Aggressive (High Risk)</option>
+          </select>
+          <div class="small" style="margin-top:8px;color:#666">
+            Choose your risk tolerance level for automated trading
+          </div>
+        </div>
+
+        <!-- Risk Management -->
+        <div class="form-group">
+          <label>Max Position Size (%)</label>
+          <input type="range" id="position-size" class="input" min="1" max="20" value="5" oninput="updatePositionDisplay(this.value)">
+          <div class="small" style="margin-top:8px;color:#666">
+            Current: <span id="position-display" style="font-weight:600">5%</span> of account balance per trade
+          </div>
+        </div>
+
+        <!-- Stop Loss -->
+        <div class="form-group">
+          <label>Stop Loss (%)</label>
+          <input type="range" id="stop-loss" class="input" min="1" max="10" value="3" oninput="updateStopLossDisplay(this.value)">
+          <div class="small" style="margin-top:8px;color:#666">
+            Current: <span id="stoploss-display" style="font-weight:600">3%</span> maximum loss per trade
+          </div>
+        </div>
+
+        <!-- Take Profit -->
+        <div class="form-group">
+          <label>Take Profit Target (%)</label>
+          <input type="range" id="take-profit" class="input" min="2" max="20" value="6" oninput="updateTakeProfitDisplay(this.value)">
+          <div class="small" style="margin-top:8px;color:#666">
+            Current: <span id="takeprofit-display" style="font-weight:600">6%</span> profit target per trade
+          </div>
+        </div>
+
+        <div style="margin-top:30px" class="divider"></div>
+
+        <!-- Subscription Section -->
+        <h3 style="margin-top:30px;margin-bottom:15px">AI Bot Subscription</h3>
+        <div class="form-group">
+          <label>Subscription Amount (USD)</label>
+          <input type="number" id="ai-sub-amt" class="input" placeholder="Min: $30, Max: $3,000" min="30" max="3000">
+          <div class="small" style="margin-top:8px;color:#f59e0b">
+            💡 The AI bot will use this amount for automated trading operations
+          </div>
+        </div>
+
+        <!-- Features List -->
+        <div style="background:#f5f5f5;padding:20px;border-radius:8px;margin-top:20px;margin-bottom:20px">
+          <div style="font-weight:700;margin-bottom:15px">AI Bot Features:</div>
+          <div style="display:grid;gap:10px">
+            <div class="small">✅ 24/7 Automated Trading</div>
+            <div class="small">✅ Machine Learning Price Predictions</div>
+            <div class="small">✅ Real-time Market Analysis</div>
+            <div class="small">✅ Risk Management Controls</div>
+            <div class="small">✅ Multi-asset Portfolio Optimization</div>
+            <div class="small">✅ Profit Cycle Execution (0.15% estimated return)</div>
+          </div>
+        </div>
+
+        <button class="cta cta-full" id="subscribe-btn" onclick="subscribeAIBot()">ACTIVATE AI BOT SUBSCRIPTION</button>
+        <div id="ai-msg" class="small" style="margin-top:15px;text-align:center"></div>
+
+        <div style="margin-top:30px" class="divider"></div>
+
+        <!-- Performance History -->
+        <h3 style="margin-top:30px;margin-bottom:15px">AI Bot Performance</h3>
+        <div id="performance-history">
+          <p class="small" style="color:#666">No performance data yet. Subscribe to start tracking.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { state, getCurrentUser, addHistory, saveState } from './js/userData.js';
+
+    function renderHeader() {
+      const user = getCurrentUser();
+      document.getElementById('app-header').innerHTML = `
+        <div class="brand"><div class="logo">FX</div><div>
+          <div style="font-weight:800">AI Quant Settings</div>
+          <div class="small">User: ${user.name}</div>
+        </div></div>
+        <div class="nav">
+          <span class="badge-sim">SIMULATION MODE</span>
+        </div>`;
+    }
+
+    function loadAISettings() {
+      const user = getCurrentUser();
+      
+      // Check if user has active AI subscription
+      if (user.aiSubscription && user.aiSubscription.active) {
+        document.getElementById('bot-status').innerHTML = '● ACTIVE';
+        document.getElementById('bot-status').style.color = '#0b9d58';
+        document.getElementById('sub-amount').textContent = '$' + (user.aiSubscription.amount || 0).toLocaleString();
+      } else {
+        document.getElementById('bot-status').innerHTML = '○ INACTIVE';
+        document.getElementById('bot-status').style.color = '#d03030';
+        document.getElementById('sub-amount').textContent = '$0.00';
+      }
+
+      // Load saved settings
+      if (user.aiSettings) {
+        document.getElementById('strategy').value = user.aiSettings.strategy || 'moderate';
+        document.getElementById('position-size').value = user.aiSettings.positionSize || 5;
+        document.getElementById('stop-loss').value = user.aiSettings.stopLoss || 3;
+        document.getElementById('take-profit').value = user.aiSettings.takeProfit || 6;
+        
+        updatePositionDisplay(user.aiSettings.positionSize || 5);
+        updateStopLossDisplay(user.aiSettings.stopLoss || 3);
+        updateTakeProfitDisplay(user.aiSettings.takeProfit || 6);
+      }
+
+      renderPerformanceHistory();
+    }
+
+    function renderPerformanceHistory() {
+      const user = getCurrentUser();
+      const container = document.getElementById('performance-history');
+      
+      const aiHistory = (user.history || []).filter(h => h.action.includes('ai.'));
+      
+      if (aiHistory.length === 0) {
+        container.innerHTML = '<p class="small" style="color:#666">No performance data yet. Subscribe to start tracking.</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="display:grid;gap:10px">
+          ${aiHistory.slice(0, 10).map(h => `
+            <div class="card" style="padding:12px">
+              <div class="kv">
+                <div>
+                  <div class="small" style="color:#666">${h.ts}</div>
+                  <div style="font-weight:600">${h.action.toUpperCase()}</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-size:16px;font-weight:700;color:#0b9d58">
+                    +$${(h.meta?.amount || h.meta?.profit || 0).toFixed(2)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    window.updatePositionDisplay = function(value) {
+      document.getElementById('position-display').textContent = value + '%';
+    };
+
+    window.updateStopLossDisplay = function(value) {
+      document.getElementById('stoploss-display').textContent = value + '%';
+    };
+
+    window.updateTakeProfitDisplay = function(value) {
+      document.getElementById('takeprofit-display').textContent = value + '%';
+    };
+
+    window.subscribeAIBot = function() {
+      const amt = Number(document.getElementById('ai-sub-amt').value || 0);
+      const user = getCurrentUser();
+      const msg = document.getElementById('ai-msg');
+
+      // Save settings
+      user.aiSettings = {
+        strategy: document.getElementById('strategy').value,
+        positionSize: Number(document.getElementById('position-size').value),
+        stopLoss: Number(document.getElementById('stop-loss').value),
+        takeProfit: Number(document.getElementById('take-profit').value)
+      };
+
+      if (amt < 30 || amt > 3000) {
+        msg.innerHTML = '<span style="color:#d03030">❌ Invalid amount. Must be between $30 and $3,000.</span>';
+        return;
+      }
+
+      if (amt > user.balance) {
+        msg.innerHTML = '<span style="color:#d03030">❌ Insufficient balance. Please deposit funds first.</span>';
+        return;
+      }
+
+      // Deduct subscription amount
+      user.balance -= amt;
+
+      // Activate subscription
+      user.aiSubscription = {
+        active: true,
+        amount: amt,
+        startDate: new Date().toISOString(),
+        settings: user.aiSettings
+      };
+
+      addHistory(user.id, 'ai.subscribe', { amount: amt });
+      saveState(state);
+
+      msg.innerHTML = '<span style="color:#0b9d58">✅ AI Bot activated! Subscription: $' + amt.toFixed(2) + '. Profit cycle will execute in 5 seconds...</span>';
+      document.getElementById('subscribe-btn').disabled = true;
+      document.getElementById('subscribe-btn').textContent = 'Processing...';
+
+      // Execute profit cycle after 5 seconds
+      setTimeout(() => {
+        const profit = amt * 0.0015; // 0.15% return
+        user.balance += profit;
+        addHistory(user.id, 'ai.profit', { profit: profit, subscription: amt });
+        saveState(state);
+        
+        msg.innerHTML = '<span style="color:#0b9d58">✅ First profit cycle completed! Earned: $' + profit.toFixed(2) + '</span>';
+        document.getElementById('subscribe-btn').disabled = false;
+        document.getElementById('subscribe-btn').textContent = 'UPDATE SUBSCRIPTION';
+        
+        loadAISettings();
+      }, 5000);
+    };
+
+    renderHeader();
+    loadAISettings();
+  </script>
+</body>
+</html>

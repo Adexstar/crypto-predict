@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Investment Prediction</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #0f0f23; color: #e4e4e7; line-height: 1.5; }
+    
+    .admin-container { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; background: #0f0f23; }
+    .admin-sidebar { background: #1a1a2e; border-right: 1px solid rgba(255, 255, 255, 0.08); padding: 20px; overflow-y: auto; max-height: 100vh; position: sticky; top: 0; }
+    .sidebar-header { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+    .sidebar-header .logo { font-size: 2.5rem; color: #f0ad4e; text-align: center; margin-bottom: 8px; }
+    .sidebar-header .title { font-size: 1.2rem; font-weight: 700; color: #e4e4e7; text-align: center; }
+    .sidebar-header .subtitle { font-size: 0.75rem; color: #a1a1a9; text-align: center; margin-top: 4px; }
+    
+    .nav-section { margin-bottom: 25px; }
+    .nav-section-title { color: #a1a1a9; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; padding-left: 12px; }
+    
+    .sidebar-nav { display: flex; flex-direction: column; gap: 4px; }
+    .nav-btn { 
+      background: transparent; 
+      border: none; 
+      color: #a1a1a9; 
+      padding: 12px 12px; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      text-align: left; 
+      transition: all 0.3s; 
+      font-weight: 500; 
+      font-size: 0.95rem;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      pointer-events: auto;
+    }
+    .nav-btn .icon { font-size: 1.2rem; width: 24px; text-align: center; pointer-events: none; }
+    .nav-btn span { pointer-events: none; }
+    .nav-btn:hover { background: rgba(240, 173, 78, 0.1); color: #f0ad4e; transform: translateX(4px); }
+    .nav-btn.active { background: rgba(240, 173, 78, 0.2); color: #f0ad4e; font-weight: 600; }
+    .nav-btn.danger { color: #f6465d; margin-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 15px; }
+    .nav-btn.danger:hover { background: rgba(246, 70, 93, 0.1); }
+    
+    .admin-main { padding: 20px; overflow-y: auto; color: #e4e4e7; max-width: 1400px; }
+    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    .admin-header h1 { color: #f0ad4e; font-size: 1.5rem; }
+    .badge-danger { background: rgba(246, 70, 93, 0.2); color: #f6465d; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; }
+    
+    .admin-page { display: none !important; }
+    .admin-page.active { display: block !important; }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .stat-card { background: #1a1a2e; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 15px; }
+    .stat-label { color: #a1a1a9; font-size: 0.8rem; margin-bottom: 8px; }
+    .stat-value { color: #f0ad4e; font-size: 1.8rem; font-weight: 800; }
+    
+    .card { background: #1a1a2e; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; color: #a1a1a9; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
+    .input, select { width: 100%; padding: 10px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; color: #e4e4e7; font-family: inherit; }
+    .input:focus, select:focus { outline: none; border-color: #f0ad4e; background: rgba(255, 255, 255, 0.08); }
+    
+    .btn { 
+      display: inline-block;
+      padding: 8px 14px; 
+      background: #f0ad4e; 
+      color: #0f0f23; 
+      border: none; 
+      border-radius: 6px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: all 0.3s;
+      font-size: 12px;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(240, 173, 78, 0.3); }
+    .btn:active { transform: translateY(0); }
+    .btn.danger { background: #f6465d; color: white; }
+    .btn.danger:hover { background: #e03450; }
+    .btn.success { background: #05b26c; color: white; }
+    
+    .info-box { background: rgba(240, 173, 78, 0.1); border: 1px solid rgba(240, 173, 78, 0.3); border-radius: 6px; padding: 12px; margin: 12px 0; font-size: 0.9rem; }
+    
+    h2 { color: #f0ad4e; margin-bottom: 15px; font-size: 1.3rem; }
+    h3 { color: #e4e4e7; margin-top: 15px; margin-bottom: 12px; font-size: 1rem; }
+    
+    .quick-actions { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px; 
+      margin-top: 15px;
+      width: 100%;
+    }
+    .quick-actions button { 
+      pointer-events: auto !important;
+      font-size: 12px;
+      padding: 8px 12px;
+    }
+
+    /* ===== Responsive Design ===== */
+    @media (max-width: 1024px) {
+      .admin-container { grid-template-columns: 1fr; }
+      .admin-sidebar { max-height: none; position: relative; border-right: none; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+      .sidebar-header .subtitle { display: none; }
+      .nav-section { margin-bottom: 15px; }
+      .nav-section-title { display: none; }
+      .sidebar-nav { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+      .nav-btn { flex: 1; min-width: 150px; }
+      .admin-main { padding: 15px; }
+    }
+
+    @media (max-width: 768px) {
+      .admin-container { grid-template-columns: 1fr; }
+      .admin-sidebar { padding: 15px; }
+      .sidebar-header .logo { font-size: 2rem; }
+      .sidebar-header .title { font-size: 1rem; }
+      .nav-section { margin-bottom: 10px; }
+      .sidebar-nav { gap: 6px; }
+      .nav-btn { padding: 10px; font-size: 0.85rem; min-width: 120px; }
+      .nav-btn .icon { font-size: 1rem; }
+      .admin-main { padding: 15px; }
+      .admin-header { flex-direction: column; align-items: flex-start; }
+      .admin-header h1 { font-size: 1.2rem; }
+      .stats-grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+      .stat-card { padding: 12px; }
+      .stat-label { font-size: 0.75rem; }
+      .stat-value { font-size: 1.5rem; }
+      .card { padding: 12px; }
+      .quick-actions { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; }
+      .btn { padding: 6px 10px; font-size: 11px; }
+    }
+
+    @media (max-width: 480px) {
+      .admin-sidebar { padding: 10px; }
+      .sidebar-header { padding-bottom: 15px; }
+      .sidebar-header .logo { font-size: 1.8rem; margin-bottom: 4px; }
+      .sidebar-header .title { font-size: 0.9rem; }
+      .nav-section { margin-bottom: 8px; }
+      .sidebar-nav { gap: 4px; }
+      .nav-btn { padding: 8px; font-size: 0.8rem; min-width: 100px; }
+      .nav-btn .icon { font-size: 0.9rem; width: 20px; }
+      .admin-main { padding: 10px; }
+      .admin-header h1 { font-size: 1rem; }
+      .badge-danger { font-size: 0.75rem; padding: 4px 8px; }
+      h2 { font-size: 1.1rem; margin-bottom: 10px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px; }
+      .stat-card { padding: 10px; }
+      .stat-label { font-size: 0.7rem; }
+      .stat-value { font-size: 1.3rem; }
+      .quick-actions { grid-template-columns: 1fr; gap: 6px; }
+      .btn { padding: 6px 10px; width: 100%; font-size: 11px; }
+      .card { padding: 10px; margin-bottom: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="logo">�️</div>
+        <div class="title">Admin Panel</div>
+        <div class="subtitle">24h Trading Platform</div>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-section-title">Overview</div>
+        <nav class="sidebar-nav">
+          <button type="button" class="nav-btn active" onclick="switchPage('dashboard')">
+            <span class="icon">📊</span>
+            <span>Dashboard</span>
+          </button>
+          <button type="button" class="nav-btn" onclick="switchPage('analytics')">
+            <span class="icon">📈</span>
+            <span>Analytics</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">User Management</div>
+        <nav class="sidebar-nav">
+          <button type="button" class="nav-btn" onclick="switchPage('users')">
+            <span class="icon">👥</span>
+            <span>All Users</span>
+          </button>
+          <button type="button" class="nav-btn" onclick="switchPage('freeze')">
+            <span class="icon">🔒</span>
+            <span>Freeze Accounts</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Financial</div>
+        <nav class="sidebar-nav">
+          <button type="button" class="nav-btn" onclick="switchPage('balance')">
+            <span class="icon">💰</span>
+            <span>Balance Control</span>
+          </button>
+          <button type="button" class="nav-btn" onclick="switchPage('profit')">
+            <span class="icon">💵</span>
+            <span>Profit Engine</span>
+          </button>
+          <button type="button" class="nav-btn" onclick="switchPage('withdrawals')">
+            <span class="icon">💸</span>
+            <span>Withdrawals</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">System</div>
+        <nav class="sidebar-nav">
+          <button type="button" class="nav-btn" onclick="switchPage('logs')">
+            <span class="icon">📝</span>
+            <span>Activity Logs</span>
+          </button>
+          <button type="button" class="nav-btn" onclick="switchPage('audit')">
+            <span class="icon">🔍</span>
+            <span>Audit Trail</span>
+          </button>
+          <button type="button" class="nav-btn" onclick="switchPage('announcements')">
+            <span class="icon">📢</span>
+            <span>Announcements</span>
+          </button>
+          <button type="button" class="nav-btn" onclick="switchPage('support')">
+            <span class="icon">💬</span>
+            <span>Support Tickets</span>
+          </button>
+          <button type="button" class="nav-btn" onclick="switchPage('export')">
+            <span class="icon">📥</span>
+            <span>Export Reports</span>
+          </button>
+        </nav>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button type="button" class="nav-btn danger" onclick="logout()">
+          <span class="icon">🚪</span>
+          <span>Logout</span>
+        </button>
+      </nav>
+      </nav>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1>Investment Prediction Admin Panel</h1>
+        <div class="admin-status">
+          <span class="badge-danger">⚠️ INTERNAL USE ONLY</span>
+        </div>
+      </div>
+
+      <!-- Dashboard Page -->
+      <div id="dashboard-page" class="admin-page active">
+        <h2>Dashboard Overview</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value" id="stat-users">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Assets (USD)</div>
+            <div class="stat-value" id="stat-assets">$0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Frozen Accounts</div>
+            <div class="stat-value" id="stat-frozen">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Pending Withdrawals</div>
+            <div class="stat-value" id="stat-pending">0</div>
+          </div>
+        </div>
+
+        <h3>Quick Actions</h3>
+        <div class="quick-actions">
+          <button type="button" class="btn" onclick="switchPage('users')">Manage Users</button>
+          <button type="button" class="btn" onclick="switchPage('balance')">Adjust Balances</button>
+          <button type="button" class="btn danger" onclick="switchPage('freeze')">Freeze Accounts</button>
+          <button type="button" class="btn" onclick="switchPage('withdrawals')">View Withdrawals</button>
+          <button type="button" class="btn" onclick="switchPage('profit')">Run Profit Cycle</button>
+        </div>
+      </div>
+
+      <!-- Users Page -->
+      <div id="users-page" class="admin-page">
+        <h2>User Management</h2>
+        <div id="users-list"></div>
+      </div>
+
+      <!-- Balance Page -->
+      <div id="balance-page" class="admin-page">
+        <h2>Balance Control</h2>
+        <div class="card">
+          <div class="form-group">
+            <label>Select User</label>
+            <select id="balance-user-sel" class="input"></select>
+            <input type="number" id="balance-input" class="input" placeholder="Enter new balance" style="margin-top: 10px;">
+            <button type="button" class="btn" style="margin-top:10px; width:100%" onclick="setBalance()">SET BALANCE</button>
+          </div>
+          <div id="balance-msg" style="margin-top:15px; color: #05b26c;"></div>
+        </div>
+      </div>
+
+      <!-- Freeze Accounts Page -->
+      <div id="freeze-page" class="admin-page">
+        <h2>Freeze/Unfreeze Accounts</h2>
+        <div id="freeze-list"></div>
+      </div>
+
+      <!-- Withdrawals Page -->
+      <div id="withdrawals-page" class="admin-page">
+        <h2>Withdrawal Requests</h2>
+        <div id="withdrawals-list"></div>
+      </div>
+
+      <!-- Profit Engine Page -->
+      <div id="profit-page" class="admin-page">
+        <h2>Profit Engine Controls</h2>
+        <div class="card">
+          <div class="form-group">
+            <label>Select User</label>
+            <select id="profit-user-sel" class="input"></select>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+            <button type="button" class="btn" onclick="injectProfit()">💰 Inject $500</button>
+            <button type="button" class="btn" onclick="runDailyProfit()">📊 Run Daily Cycle</button>
+          </div>
+          <div id="profit-msg" style="margin-top:15px; color: #05b26c;"></div>
+        </div>
+      </div>
+
+      <!-- Activity Logs Page -->
+      <div id="logs-page" class="admin-page">
+        <h2>Activity Logs</h2>
+        <div class="card">
+          <div class="form-group">
+            <label>Select User</label>
+            <select id="logs-user-sel" class="input"></select>
+          </div>
+          <div id="logs-list" style="margin-top:20px"></div>
+        </div>
+      </div>
+
+      <!-- Export Reports Page -->
+      <div id="export-page" class="admin-page">
+        <h2>Export Reports</h2>
+        <div class="card">
+          <h3>User Data Export</h3>
+          <p style="color: #a1a1a9; margin-bottom: 15px; font-size: 0.9rem;">Download user information and transaction history in CSV format</p>
+          <div class="quick-actions" style="margin-bottom: 20px;">
+            <button type="button" class="btn" onclick="exportUsersCSV()">📥 Export Users (CSV)</button>
+            <button type="button" class="btn" onclick="exportTransactionsCSV()">📥 Export Transactions (CSV)</button>
+            <button type="button" class="btn" onclick="exportFrozenUsersCSV()">📥 Export Frozen Accounts (CSV)</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Report Summary</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px;">
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Total Users</div>
+              <div style="color: #f0ad4e; font-size: 1.5rem; font-weight: 700;" id="export-total-users">0</div>
+            </div>
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Total Assets</div>
+              <div style="color: #f0ad4e; font-size: 1.5rem; font-weight: 700;" id="export-total-assets">$0</div>
+            </div>
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Frozen Accounts</div>
+              <div style="color: #f6465d; font-size: 1.5rem; font-weight: 700;" id="export-frozen-count">0</div>
+            </div>
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">KYC Verified</div>
+              <div style="color: #05b26c; font-size: 1.5rem; font-weight: 700;" id="export-kyc-count">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit Trail Page -->
+      <div id="audit-page" class="admin-page">
+        <h2>Audit Trail - Admin Actions</h2>
+        <div class="card">
+          <p style="color: #a1a1a9; margin-bottom: 15px; font-size: 0.9rem;">Complete log of all administrative actions taken on the platform</p>
+          <div id="audit-list" style="margin-top: 15px;"></div>
+        </div>
+      </div>
+
+      <!-- Announcements Page -->
+      <div id="announcements-page" class="admin-page">
+        <h2>Platform Announcements</h2>
+        <div class="card">
+          <h3>Create New Announcement</h3>
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="ann-title" class="input" placeholder="Announcement title">
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea id="ann-message" class="input" style="min-height: 100px;" placeholder="Announcement message..."></textarea>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+              <label>Type</label>
+              <select id="ann-type" class="input">
+                <option value="info">Info</option>
+                <option value="warning">Warning</option>
+                <option value="success">Success</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Urgent</label>
+              <select id="ann-urgent" class="input">
+                <option value="false">No</option>
+                <option value="true">Yes</option>
+              </select>
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+              <button type="button" class="btn" onclick="createNewAnnouncement()" style="width: 100%;">📢 Post Announcement</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <h3>Recent Announcements</h3>
+          <div id="ann-list" style="margin-top: 15px;"></div>
+        </div>
+      </div>
+
+      <!-- Support Tickets Page -->
+      <div id="support-page" class="admin-page">
+        <h2>Support Tickets</h2>
+        <div class="card">
+          <h3>Ticket Overview</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Open Tickets</div>
+              <div style="color: #05b26c; font-size: 1.5rem; font-weight: 700;" id="open-tickets">0</div>
+            </div>
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">In Progress</div>
+              <div style="color: #3861fb; font-size: 1.5rem; font-weight: 700;" id="progress-tickets">0</div>
+            </div>
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Resolved</div>
+              <div style="color: #f0ad4e; font-size: 1.5rem; font-weight: 700;" id="resolved-tickets">0</div>
+            </div>
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Total</div>
+              <div style="color: #e4e4e7; font-size: 1.5rem; font-weight: 700;" id="total-tickets">0</div>
+            </div>
+          </div>
+          <div id="support-list" style="margin-top: 15px;"></div>
+        </div>
+      </div>
+
+      <!-- Analytics Page -->
+      <div id="analytics-page" class="admin-page">
+        <h2>Platform Analytics & Insights</h2>
+        <div class="card">
+          <h3>Platform Overview</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Total Users</div>
+              <div style="color: #3861fb; font-size: 1.5rem; font-weight: 700;" id="analytics-total-users">0</div>
+            </div>
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Active Users</div>
+              <div style="color: #05b26c; font-size: 1.5rem; font-weight: 700;" id="analytics-active-users">0</div>
+            </div>
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Frozen Accounts</div>
+              <div style="color: #f6465d; font-size: 1.5rem; font-weight: 700;" id="analytics-frozen-users">0</div>
+            </div>
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">KYC Verified</div>
+              <div style="color: #f0ad4e; font-size: 1.5rem; font-weight: 700;" id="analytics-kyc-verified">0</div>
+            </div>
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">VIP Members</div>
+              <div style="color: #a78bfa; font-size: 1.5rem; font-weight: 700;" id="analytics-vip-users">0</div>
+            </div>
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Total Assets</div>
+              <div style="color: #06b6d4; font-size: 1.5rem; font-weight: 700;" id="analytics-total-assets">$0</div>
+            </div>
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Total Profit Generated</div>
+              <div style="color: #f0ad4e; font-size: 1.5rem; font-weight: 700;" id="analytics-total-profit">$0</div>
+            </div>
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Avg Balance</div>
+              <div style="color: #10b981; font-size: 1.5rem; font-weight: 700;" id="analytics-avg-balance">$0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <h3>Activity Metrics</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Last 24h Activity</div>
+              <div style="color: #3861fb; font-size: 1.5rem; font-weight: 700;" id="analytics-activity-24h">0</div>
+            </div>
+            <div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Last 7d Activity</div>
+              <div style="color: #f0ad4e; font-size: 1.5rem; font-weight: 700;" id="analytics-activity-7d">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <h3>Top 5 Users by Balance</h3>
+          <div id="analytics-top-users" style="margin-top: 15px;"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/api-config.js"></script>
+  <script src="./admin-api.js"></script>
+  <script>
+    // Use adminState from admin-api.js (already defined as window.adminState)
+
+    // Check admin auth on page load
+    (async () => {
+      try {
+        const userData = await AuthAPI.verify();
+        if (userData.role !== 'ADMIN') {
+          alert('Admin access required');
+          AuthAPI.logout();
+        }
+      } catch (error) {
+        console.error('Auth failed:', error);
+        window.location.href = './login.html';
+      }
+    })();
+
+    window.logout = function() {
+      AuthAPI.logout();
+    };
+
+    window.switchPage = async function(page) {
+      console.log('Switching to page:', page);
+      
+      // Hide all pages
+      document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
+      
+      // Show target page
+      const pageEl = document.getElementById(page + '-page');
+      if (pageEl) {
+        pageEl.classList.add('active');
+        console.log('Page shown:', page + '-page');
+      } else {
+        console.error('Page not found:', page + '-page');
+        return;
+      }
+      
+      // Update nav buttons - find by onclick attribute
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+        const onclickAttr = btn.getAttribute('onclick');
+        if (onclickAttr && onclickAttr.includes(`'${page}'`)) {
+          btn.classList.add('active');
+        }
+      });
+      
+      // Render page content
+      try {
+        if (page === 'dashboard') await renderDashboard();
+        else if (page === 'users') await renderUsers();
+        else if (page === 'balance') await renderBalance();
+        else if (page === 'freeze') await renderFreeze();
+        else if (page === 'withdrawals') await renderWithdrawals();
+        else if (page === 'profit') await renderProfit();
+        else if (page === 'logs') await renderLogs();
+        else if (page === 'export') renderExport();
+        else if (page === 'audit') renderAudit();
+        else if (page === 'announcements') await renderAnnouncements();
+        else if (page === 'support') await renderSupport();
+        else if (page === 'analytics') await renderAnalytics();
+      } catch (error) {
+        console.error('Error rendering page:', error);
+        alert('Failed to load page: ' + error.message);
+      }
+    };
+
+    async function populateUserSelects() {
+      await loadUsers(); // Load users from API
+      const users = adminState.users.map(u => `<option value="${u.id}">${u.name} (${u.email})</option>`).join('');
+      document.getElementById('balance-user-sel').innerHTML = users;
+      document.getElementById('profit-user-sel').innerHTML = users;
+      document.getElementById('logs-user-sel').innerHTML = users;
+    }
+
+    async function renderDashboard() {
+      try {
+        // Load fresh data from API
+        adminState.users = await AdminAPI.getUsers();
+        adminState.deposits = await DepositAPI.getPending();
+        adminState.withdrawals = await WithdrawalAPI.getPending();
+        adminState.analytics = await AdminAPI.getAnalytics();
+        
+        const totalAssets = adminState.users.reduce((sum, u) => sum + u.balance, 0);
+        const frozenCount = adminState.users.filter(u => u.frozen).length;
+        const pendingWithdrawals = adminState.withdrawals.length;
+        
+        document.getElementById('stat-users').textContent = adminState.users.length;
+        document.getElementById('stat-assets').textContent = '$' + totalAssets.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('stat-frozen').textContent = frozenCount;
+        document.getElementById('stat-pending').textContent = pendingWithdrawals;
+      } catch (error) {
+        console.error('Failed to load dashboard:', error);
+        alert('Failed to load dashboard data');
+      }
+    }
+
+    async function renderUsers() {
+      try {
+        adminState.users = await AdminAPI.getUsers();
+      } catch (error) {
+        console.error('Failed to load users:', error);
+        alert('Failed to load users');
+        return;
+      }
+      
+      const list = document.getElementById('users-list');
+      list.innerHTML = adminState.users.map(u => `
+        <div class="card">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+              <strong>${u.name}</strong>
+              <div style="color: #a1a1a9; margin-top: 5px;">${u.email}</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-weight: 700; color: #f0ad4e;">$${u.balance.toLocaleString(undefined, {minimumFractionDigits:2})}</div>
+              <div style="color: ${u.frozen ? '#f6465d' : '#05b26c'}; font-weight: 600;">${u.frozen ? '❌ FROZEN' : '✅ ACTIVE'}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function renderFreeze() {
+      await loadUsers(); // Load from API
+      const list = document.getElementById('freeze-list');
+      if (!list) {
+        console.error('freeze-list element not found');
+        return;
+      }
+      
+      if (!adminState.users || adminState.users.length === 0) {
+        list.innerHTML = '<div class="info-box">No users found in the system.</div>';
+        return;
+      }
+
+      // Filter state
+      window.freezeFilters = window.freezeFilters || {
+        name: '',
+        email: '',
+        status: 'all',
+        kyc: 'all'
+      };
+
+      // Apply filters
+      const filtered = adminState.users.filter(u => {
+        const nameMatch = u.name.toLowerCase().includes(window.freezeFilters.name.toLowerCase());
+        const emailMatch = u.email.toLowerCase().includes(window.freezeFilters.email.toLowerCase());
+        const statusMatch = window.freezeFilters.status === 'all' || 
+          (window.freezeFilters.status === 'frozen' && u.frozen) ||
+          (window.freezeFilters.status === 'active' && !u.frozen);
+        const kycMatch = window.freezeFilters.kyc === 'all' ||
+          (window.freezeFilters.kyc === 'verified' && u.kyc) ||
+          (window.freezeFilters.kyc === 'pending' && !u.kyc);
+        return nameMatch && emailMatch && statusMatch && kycMatch;
+      });
+      
+      list.innerHTML = `
+        <style>
+          .filter-section { 
+            background: #1a1a2e; 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-radius: 8px; 
+            padding: 15px; 
+            margin-bottom: 15px;
+          }
+          .filter-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 12px;
+            align-items: end;
+          }
+          .filter-group { display: flex; flex-direction: column; gap: 6px; }
+          .filter-group label { color: #a1a1a9; font-size: 0.85rem; font-weight: 600; }
+          .filter-input, .filter-select { 
+            padding: 8px 10px; 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-radius: 4px; 
+            color: #e4e4e7;
+            font-family: inherit;
+          }
+          .filter-input:focus, .filter-select:focus { 
+            outline: none; 
+            border-color: #f0ad4e; 
+            background: rgba(255, 255, 255, 0.08);
+          }
+          .filter-actions { display: flex; gap: 8px; }
+          .filter-actions button { padding: 8px 16px; font-size: 0.85rem; }
+          
+          .results-info { 
+            color: #a1a1a9; 
+            font-size: 0.9rem; 
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          }
+          
+          .freeze-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+          .freeze-table th { 
+            background: #1a1a2e; 
+            color: #f0ad4e; 
+            padding: 10px; 
+            text-align: left; 
+            font-weight: 600;
+            border-bottom: 2px solid rgba(240, 173, 78, 0.2);
+          }
+          .freeze-table td { 
+            padding: 10px; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            vertical-align: middle;
+          }
+          .freeze-table tr:hover { background: rgba(240, 173, 78, 0.05); }
+          .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+          }
+          .status-active { background: rgba(5, 178, 108, 0.2); color: #05b26c; }
+          .status-frozen { background: rgba(246, 70, 93, 0.2); color: #f6465d; }
+          .kyc-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: 600;
+          }
+          .kyc-verified { background: rgba(5, 178, 108, 0.2); color: #05b26c; }
+          .kyc-pending { background: rgba(248, 113, 113, 0.2); color: #f87171; }
+          
+          @media (max-width: 768px) {
+            .filter-grid { grid-template-columns: 1fr; }
+            .filter-actions { flex-wrap: wrap; }
+            .freeze-table { font-size: 0.85rem; }
+            .freeze-table th, .freeze-table td { padding: 8px; }
+            .freeze-table th:nth-child(2) { display: none; }
+            .freeze-table td:nth-child(2) { display: none; }
+          }
+          @media (max-width: 480px) {
+            .filter-section { padding: 10px; }
+            .filter-grid { gap: 8px; }
+            .freeze-table { font-size: 0.75rem; }
+            .freeze-table th, .freeze-table td { padding: 6px; }
+            .status-badge { padding: 2px 6px; font-size: 0.7rem; }
+          }
+        </style>
+        
+        <!-- Filter Section -->
+        <div class="filter-section">
+          <h3 style="color: #e4e4e7; font-size: 1rem; margin-bottom: 12px;">🔍 Advanced Filters</h3>
+          <div class="filter-grid">
+            <div class="filter-group">
+              <label>Name</label>
+              <input type="text" class="filter-input" placeholder="Search by name..." 
+                value="${window.freezeFilters.name}" 
+                onchange="applyFreezeFilter('name', this.value)" 
+                oninput="applyFreezeFilter('name', this.value)">
+            </div>
+            <div class="filter-group">
+              <label>Email</label>
+              <input type="text" class="filter-input" placeholder="Search by email..." 
+                value="${window.freezeFilters.email}" 
+                onchange="applyFreezeFilter('email', this.value)"
+                oninput="applyFreezeFilter('email', this.value)">
+            </div>
+            <div class="filter-group">
+              <label>Status</label>
+              <select class="filter-select" value="${window.freezeFilters.status}" 
+                onchange="applyFreezeFilter('status', this.value)">
+                <option value="all">All Statuses</option>
+                <option value="active">🔓 Active</option>
+                <option value="frozen">🔒 Frozen</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>KYC Status</label>
+              <select class="filter-select" value="${window.freezeFilters.kyc}" 
+                onchange="applyFreezeFilter('kyc', this.value)">
+                <option value="all">All KYC</option>
+                <option value="verified">✅ Verified</option>
+                <option value="pending">⏳ Pending</option>
+              </select>
+            </div>
+            <div class="filter-actions">
+              <button type="button" class="btn" onclick="resetFreezeFilters()">Reset Filters</button>
+            </div>
+          </div>
+          <div class="results-info">Showing ${filtered.length} of ${adminState.users.length} users</div>
+          
+          <!-- Bulk Actions Section -->
+          <div style="background: rgba(246, 70, 93, 0.05); border: 1px solid rgba(246, 70, 93, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 15px; display: ${filtered.length > 0 ? 'block' : 'none'};">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <input type="checkbox" id="selectAllCheckbox" style="width: 18px; height: 18px; cursor: pointer;" onchange="toggleSelectAll()">
+              <label for="selectAllCheckbox" style="color: #a1a1a9; font-size: 0.9rem; margin: 0; cursor: pointer;">Select All Visible</label>
+              <span style="color: #f0ad4e; font-weight: 600; margin-left: 10px;">(<span id="selectedCount">0</span> selected)</span>
+              <button type="button" class="btn danger" onclick="bulkFreezeSelected()" style="margin-left: auto;">🔒 Freeze Selected</button>
+              <button type="button" class="btn success" onclick="bulkUnfreezeSelected()">🔓 Unfreeze Selected</button>
+            </div>
+          </div>
+        </div>
+
+        <table class="freeze-table">
+          <thead>
+            <tr>
+              <th style="width: 5%; text-align: center;">
+                <input type="checkbox" id="headerCheckbox" style="width: 16px; height: 16px; cursor: pointer;" onchange="toggleSelectAll()">
+              </th>
+              <th style="width: 23%;">Name</th>
+              <th style="width: 27%;">Email</th>
+              <th style="width: 18%;">Status</th>
+              <th style="width: 14%;">KYC</th>
+              <th style="width: 15%; text-align: center;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.length === 0 ? `
+              <tr>
+                <td colspan="6" style="text-align: center; color: #a1a1a9; padding: 20px;">
+                  No users match the current filters
+                </td>
+              </tr>
+            ` : filtered.map(u => `
+              <tr>
+                <td style="text-align: center;">
+                  <input type="checkbox" class="user-checkbox" value="${u.id}" style="width: 16px; height: 16px; cursor: pointer;" onchange="updateSelectedCount()">
+                </td>
+                <td><strong>${u.name}</strong></td>
+                <td style="color: #a1a1a9; font-size: 0.9rem;">${u.email}</td>
+                <td>
+                  <span class="status-badge ${u.frozen ? 'status-frozen' : 'status-active'}">
+                    ${u.frozen ? '🔒 FROZEN' : '🔓 ACTIVE'}
+                  </span>
+                </td>
+                <td>
+                  <span class="kyc-badge ${u.kyc ? 'kyc-verified' : 'kyc-pending'}">
+                    ${u.kyc ? '✅ VERIFIED' : '⏳ PENDING'}
+                  </span>
+                </td>
+                <td style="text-align: center;">
+                  <button type="button" class="btn ${u.frozen ? 'success' : 'danger'}" style="width: 90px; font-size: 0.85rem;" onclick="toggleFreeze('${u.id}', ${!u.frozen})">
+                    ${u.frozen ? 'UNFREEZE' : 'FREEZE'}
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    window.toggleFreeze = function(userId, freeze) {
+      adminToggleFreeze(userId, freeze);
+      renderFreeze();
+      renderDashboard();
+      
+      const user = getUserById(userId);
+      if (user) {
+        const status = freeze ? 'frozen' : 'unfrozen';
+        alert(`✅ ${user.name}'s account has been ${status}`);
+      }
+    };
+
+    window.applyFreezeFilter = function(filterType, value) {
+      window.freezeFilters = window.freezeFilters || {};
+      window.freezeFilters[filterType] = value;
+      renderFreeze();
+    };
+
+    window.resetFreezeFilters = function() {
+      window.freezeFilters = { name: '', email: '', status: 'all', kyc: 'all' };
+      renderFreeze();
+    };
+
+    window.toggleSelectAll = function() {
+      const checkboxes = document.querySelectorAll('.user-checkbox');
+      const headerCheckbox = document.getElementById('headerCheckbox');
+      const isChecked = headerCheckbox.checked;
+      checkboxes.forEach(cb => cb.checked = isChecked);
+      updateSelectedCount();
+    };
+
+    window.updateSelectedCount = function() {
+      const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+      document.getElementById('selectedCount').textContent = checkboxes.length;
+    };
+
+    window.bulkFreezeSelected = async function() {
+      const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+      if (checkboxes.length === 0) {
+        alert('Please select at least one user');
+        return;
+      }
+      
+      if (!confirm(`Freeze ${checkboxes.length} account(s)? This action cannot be undone.`)) {
+        return;
+      }
+      
+      let frozen = 0;
+      for (const cb of checkboxes) {
+        const userId = cb.value;
+        if (await adminToggleFreeze(userId, true)) {
+          frozen++;
+        }
+      }
+      
+      alert(`✅ ${frozen} account(s) frozen successfully`);
+      await renderFreeze();
+      await renderDashboard();
+    };
+
+    window.bulkUnfreezeSelected = async function() {
+      const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+      if (checkboxes.length === 0) {
+        alert('Please select at least one user');
+        return;
+      }
+      
+      if (!confirm(`Unfreeze ${checkboxes.length} account(s)?`)) {
+        return;
+      }
+      
+      let unfrozen = 0;
+      for (const cb of checkboxes) {
+        const userId = cb.value;
+        if (await adminToggleFreeze(userId, false)) {
+          unfrozen++;
+        }
+      }
+      
+      alert(`✅ ${unfrozen} account(s) unfrozen successfully`);
+      await renderFreeze();
+      await renderDashboard();
+    };
+
+    async function renderBalance() {
+      await populateUserSelects();
+      window.setBalance = async function() {
+        const userId = document.getElementById('balance-user-sel').value;
+        const newBalance = parseFloat(document.getElementById('balance-input').value);
+        if (await adminSetBalance(userId, newBalance)) {
+          document.getElementById('balance-msg').textContent = '✅ Balance updated successfully';
+          document.getElementById('balance-input').value = '';
+          await renderDashboard();
+        }
+      };
+    }
+
+    async function renderWithdrawals() {
+      try {
+        await loadPendingWithdrawals(); // Load from API
+      } catch (error) {
+        console.error('Failed to load withdrawals:', error);
+        alert('Failed to load withdrawals');
+        return;
+      }
+      const list = document.getElementById('withdrawals-list');
+      const pending = adminState.withdrawals;
+      
+      if (!pending || pending.length === 0) {
+        list.innerHTML = '<div class="info-box">No pending withdrawals</div>';
+        return;
+      }
+      
+      list.innerHTML = pending.map(w => `
+        <div class="card">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+              <strong>${w.user ? w.user.name : 'Unknown'}</strong>
+              <div style="color: #a1a1a9;">Amount: $${w.amount.toFixed(2)}</div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Wallet: ${w.walletAddress}</div>
+            </div>
+            <div style="text-align: right;">
+              <button type="button" class="btn success" onclick="approveWithdraw('${w.id}')">✅ APPROVE</button>
+              <button type="button" class="btn danger" style="margin-left: 10px;" onclick="rejectWithdraw('${w.id}')">❌ REJECT</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.approveWithdraw = async function(withdrawId) {
+      if (await adminApproveWithdrawal(withdrawId)) {
+        await renderWithdrawals();
+        await renderDashboard();
+      }
+    };
+    
+    window.rejectWithdraw = async function(withdrawId) {
+      const reason = prompt('Rejection reason:');
+      if (!reason) return;
+      if (await adminRejectWithdrawal(withdrawId, reason)) {
+        await renderWithdrawals();
+        await renderDashboard();
+      }
+    };
+
+    async function renderProfit() {
+      await populateUserSelects();
+      window.injectProfit = async function() {
+        const userId = document.getElementById('profit-user-sel').value;
+        const amount = parseFloat(prompt('Enter profit amount:') || 500);
+        if (await adminInjectProfit(userId, amount)) {
+          document.getElementById('profit-msg').textContent = `✅ $${amount.toFixed(2)} injected successfully`;
+          await renderDashboard();
+        }
+      };
+      
+      window.runDailyProfit = function() {
+        if (adminSimulateDailyProfit()) {
+          document.getElementById('profit-msg').textContent = '✅ Daily profit cycle completed';
+          renderDashboard();
+        }
+      };
+    }
+
+    async function renderLogs() {
+      await populateUserSelects();
+      const updateLogs = async () => {
+        const userId = document.getElementById('logs-user-sel').value;
+        const user = getUserById(userId);
+        
+        if (user) {
+          try {
+            // Get user history from API (using UserAPI endpoint through admin)
+            const historyData = await AdminAPI.getUser(userId);
+            const list = document.getElementById('logs-list');
+            
+            if (!historyData.history || historyData.history.length === 0) {
+              list.innerHTML = '<div class="info-box">No history found</div>';
+              return;
+            }
+            
+            list.innerHTML = historyData.history.map((h, i) => `
+              <div class="card" style="background: ${i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'}">
+                <div style="font-weight: 600; color: #f0ad4e;">${h.message || h.action}</div>
+                <div style="color: #a1a1a9; font-size: 0.85rem; margin-top: 4px;">${new Date(h.createdAt).toLocaleString()}</div>
+              </div>
+            `).join('');
+          } catch (error) {
+            console.error('Failed to load history:', error);
+            document.getElementById('logs-list').innerHTML = '<div class="info-box">Failed to load history</div>';
+          }
+        }
+      };
+      document.getElementById('logs-user-sel').addEventListener('change', updateLogs);
+      updateLogs();
+    }
+
+    async function renderExport() {
+      await loadUsers(); // Load from API
+      const totalAssets = adminState.users.reduce((sum, u) => sum + u.balance, 0);
+      const frozenCount = adminState.users.filter(u => u.frozen).length;
+      const kycCount = adminState.users.filter(u => u.kyc).length;
+
+      document.getElementById('export-total-users').textContent = adminState.users.length;
+      document.getElementById('export-total-assets').textContent = '$' + totalAssets.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('export-frozen-count').textContent = frozenCount;
+      document.getElementById('export-kyc-count').textContent = kycCount;
+    }
+
+    async function renderAudit() {
+      const list = document.getElementById('audit-list');
+      const auditLog = await loadAuditLogs(100);
+      
+      if (!auditLog || auditLog.length === 0) {
+        list.innerHTML = '<div class="info-box">No audit events recorded yet</div>';
+        return;
+      }
+
+      let html = `
+        <style>
+          .audit-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+          .audit-table th { 
+            background: #1a1a2e; 
+            color: #f0ad4e; 
+            padding: 10px; 
+            text-align: left; 
+            font-weight: 600;
+            border-bottom: 2px solid rgba(240, 173, 78, 0.2);
+          }
+          .audit-table td { 
+            padding: 10px; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            vertical-align: middle;
+            font-size: 0.85rem;
+          }
+          .audit-table tr:hover { background: rgba(240, 173, 78, 0.05); }
+          .action-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.75rem;
+          }
+          .action-freeze { background: rgba(246, 70, 93, 0.2); color: #f6465d; }
+          .action-unfreeze { background: rgba(5, 178, 108, 0.2); color: #05b26c; }
+          .action-balance { background: rgba(56, 97, 251, 0.2); color: #3861fb; }
+          .action-profit { background: rgba(240, 173, 78, 0.2); color: #f0ad4e; }
+          .timestamp { color: #a1a1a9; font-size: 0.8rem; }
+          @media (max-width: 768px) {
+            .audit-table { font-size: 0.8rem; }
+            .audit-table th, .audit-table td { padding: 8px; }
+          }
+        </style>
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>User</th>
+              <th>Timestamp</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      auditLog.forEach(event => {
+        const user = getUserById(event.targetUserId);
+        const userName = user ? user.name : 'Unknown';
+        const timestamp = new Date(event.timestamp).toLocaleString();
+        
+        let actionClass = 'action-balance';
+        if (event.action.includes('freeze')) actionClass = event.action === 'account_frozen' ? 'action-freeze' : 'action-unfreeze';
+        if (event.action.includes('profit')) actionClass = 'action-profit';
+        
+        html += `
+          <tr>
+            <td><span class="action-badge ${actionClass}">${event.action.replace(/_/g, ' ').toUpperCase()}</span></td>
+            <td><strong>${userName}</strong></td>
+            <td><span class="timestamp">${timestamp}</span></td>
+            <td style="color: #a1a1a9;">${JSON.stringify(event.details || {}).replace(/[{}]/g, '')}</td>
+          </tr>
+        `;
+      });
+
+      html += `
+          </tbody>
+        </table>
+      `;
+      
+      list.innerHTML = html;
+    }
+
+    window.downloadCSV = function(filename, csv) {
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    window.exportUsersCSV = function() {
+      let csv = 'ID,Name,Email,Balance,Status,KYC,Created Date,VIP\n';
+      adminState.users.forEach(u => {
+        const row = [
+          u.id,
+          `"${u.name}"`,
+          `"${u.email}"`,
+          u.balance.toFixed(2),
+          u.frozen ? 'FROZEN' : 'ACTIVE',
+          u.kyc ? 'VERIFIED' : 'PENDING',
+          new Date(u.createdAt).toISOString(),
+          u.vip ? 'YES' : 'NO'
+        ];
+        csv += row.join(',') + '\n';
+      });
+      downloadCSV('users_export_' + new Date().toISOString().split('T')[0] + '.csv', csv);
+      alert('✅ Users exported successfully');
+    };
+
+    window.exportTransactionsCSV = function() {
+      let csv = 'User,Email,Action,Timestamp,Details\n';
+      adminState.users.forEach(u => {
+        (u.history || []).forEach(h => {
+          const row = [
+            `"${u.name}"`,
+            `"${u.email}"`,
+            h.action,
+            new Date(h.ts).toISOString(),
+            `"${JSON.stringify(h.meta || {}).replace(/"/g, '""')}"` 
+          ];
+          csv += row.join(',') + '\n';
+        });
+      });
+      downloadCSV('transactions_export_' + new Date().toISOString().split('T')[0] + '.csv', csv);
+      alert('✅ Transactions exported successfully');
+    };
+
+    window.exportFrozenUsersCSV = function() {
+      const frozen = adminState.users.filter(u => u.frozen);
+      if (frozen.length === 0) {
+        alert('No frozen accounts to export');
+        return;
+      }
+      let csv = 'ID,Name,Email,Balance,Frozen Since,Reason\n';
+      frozen.forEach(u => {
+        const row = [
+          u.id,
+          `"${u.name}"`,
+          `"${u.email}"`,
+          u.balance.toFixed(2),
+          new Date(u.createdAt).toISOString(),
+          'Admin action'
+        ];
+        csv += row.join(',') + '\n';
+      });
+      downloadCSV('frozen_users_' + new Date().toISOString().split('T')[0] + '.csv', csv);
+      alert('✅ Frozen accounts exported successfully');
+    };
+
+    // Announcements render function
+    async function renderAnnouncements() {
+      const list = document.getElementById('ann-list');
+      const announcements = await loadAnnouncements();
+      
+      if (!announcements || announcements.length === 0) {
+        list.innerHTML = '<div class="info-box">No announcements posted yet</div>';
+      } else {
+        list.innerHTML = announcements.map(ann => `
+          <div class="status-card" style="background: rgba(240, 173, 78, 0.1); border-left: 4px solid #f0ad4e; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+              <div style="flex: 1;">
+                <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+                  <strong style="color: #f0ad4e;">${ann.title}</strong>
+                  <span style="background: ${ann.type === 'MAINTENANCE' ? '#a1a1a9' : ann.type === 'WARNING' ? '#f6465d' : ann.type === 'SUCCESS' ? '#05b26c' : '#3861fb'}; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.75rem; font-weight: 600;">${ann.type}</span>
+                  ${ann.urgent ? '<span style="background: #f6465d; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.75rem; font-weight: 600;">🔴 URGENT</span>' : ''}
+                </div>
+                <p style="color: #d1d5db; margin: 8px 0; font-size: 0.9rem;">${ann.message}</p>
+                <div style="color: #a1a1a9; font-size: 0.8rem;">
+                  Posted: ${new Date(ann.createdAt).toLocaleString()} | Views: ${ann.views || 0} | Expires: ${new Date(ann.expiresAt).toLocaleString()}
+                </div>
+              </div>
+              <button class="btn danger" onclick="deleteAnnouncementFromAdmin('${ann.id}')" style="margin-left: 10px; white-space: nowrap;">Delete</button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    window.createNewAnnouncement = async function() {
+      const title = document.getElementById('ann-title').value.trim();
+      const message = document.getElementById('ann-message').value.trim();
+      const type = document.getElementById('ann-type').value;
+      const urgent = document.getElementById('ann-urgent').value === 'true';
+
+      if (!title || !message) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      try {
+        await adminCreateAnnouncement({ title, message, type, urgent });
+        alert('✅ Announcement posted successfully');
+        
+        // Clear form
+        document.getElementById('ann-title').value = '';
+        document.getElementById('ann-message').value = '';
+        document.getElementById('ann-type').value = 'info';
+        document.getElementById('ann-urgent').value = 'false';
+        
+        await renderAnnouncements();
+      } catch (error) {
+        alert('Failed to create announcement: ' + error.message);
+      }
+    };
+
+    window.deleteAnnouncementFromAdmin = async function(announcementId) {
+      if (confirm('Are you sure you want to delete this announcement?')) {
+        try {
+          await adminDeleteAnnouncement(announcementId);
+          await renderAnnouncements();
+        } catch (error) {
+          alert('Failed to delete announcement: ' + error.message);
+        }
+      }
+    };
+
+    // Support Tickets render function
+    async function renderSupport() {
+      let tickets;
+      try {
+        tickets = await loadAllTickets();
+      } catch (error) {
+        console.error('Failed to load tickets:', error);
+        alert('Failed to load support tickets');
+        return;
+      } // Load from API
+      const list = document.getElementById('support-list');
+      
+      if (!tickets || tickets.length === 0) {
+        document.getElementById('open-tickets').textContent = '0';
+        document.getElementById('progress-tickets').textContent = '0';
+        document.getElementById('resolved-tickets').textContent = '0';
+        document.getElementById('total-tickets').textContent = '0';
+        list.innerHTML = '<div class="info-box">No support tickets yet</div>';
+        return;
+      }
+      
+      // Calculate stats
+      const openCount = tickets.filter(t => t.status === 'OPEN').length;
+      const progressCount = tickets.filter(t => t.status === 'IN_PROGRESS').length;
+      const resolvedCount = tickets.filter(t => t.status === 'RESOLVED').length;
+      
+      document.getElementById('open-tickets').textContent = openCount;
+      document.getElementById('progress-tickets').textContent = progressCount;
+      document.getElementById('resolved-tickets').textContent = resolvedCount;
+      document.getElementById('total-tickets').textContent = tickets.length;
+
+      if (!tickets || tickets.length === 0) {
+        list.innerHTML = '<div class="info-box">No support tickets yet</div>';
+        return;
+      }
+
+      list.innerHTML = tickets.map(ticket => {
+        const user = ticket.user;
+        const statusColors = {
+          'OPEN': '#05b26c',
+          'IN_PROGRESS': '#3861fb',
+          'RESOLVED': '#f0ad4e',
+          'CLOSED': '#a1a1a9'
+        };
+        const priorityColors = {
+          'URGENT': '#f6465d',
+          'HIGH': '#f0ad4e',
+          'MEDIUM': '#3861fb',
+          'LOW': '#05b26c'
+        };
+
+        return `
+          <div class="status-card" style="background: rgba(60, 97, 251, 0.1); border-left: 4px solid #3861fb; margin-bottom: 15px; padding: 15px;">
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: start;">
+              <div>
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                  <strong style="color: #f0ad4e;">#${ticket.id.slice(-5).toUpperCase()}</strong>
+                  <span style="background: ${statusColors[ticket.status] || '#a1a1a9'}; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.75rem; font-weight: 600;">${ticket.status.replace('_', ' ')}</span>
+                  <span style="background: ${priorityColors[ticket.priority] || '#3861fb'}; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.75rem; font-weight: 600;">${ticket.priority}</span>
+                </div>
+                <p style="color: #f0ad4e; margin: 5px 0; font-weight: 600;">${ticket.subject}</p>
+                <p style="color: #d1d5db; margin: 8px 0; font-size: 0.9rem;">${ticket.message}</p>
+                <div style="color: #a1a1a9; font-size: 0.8rem;">
+                  From: ${user?.name || 'Unknown'} (${user?.email || 'N/A'}) | Created: ${new Date(ticket.createdAt).toLocaleString()}
+                </div>
+                <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px;">
+                  <select class="input" style="font-size: 0.85rem;" onchange="updateTicketStatusFromAdmin('${ticket.id}', this.value)">
+                    <option value="">Update Status...</option>
+                    <option value="OPEN" ${ticket.status === 'OPEN' ? 'selected' : ''}>Open</option>
+                    <option value="IN_PROGRESS" ${ticket.status === 'IN_PROGRESS' ? 'selected' : ''}>In Progress</option>
+                    <option value="RESOLVED" ${ticket.status === 'RESOLVED' ? 'selected' : ''}>Resolved</option>
+                    <option value="CLOSED" ${ticket.status === 'CLOSED' ? 'selected' : ''}>Closed</option>
+                  </select>
+                  <button class="btn" onclick="promptReply('${ticket.id}')" style="font-size: 0.85rem;">Add Reply</button>
+                </div>
+                ${ticket.assignedTo ? `<div style="color: #f0ad4e; font-size: 0.85rem; margin-top: 8px;">Assigned to: ${ticket.assignedTo}</div>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.updateTicketStatusFromAdmin = async function(ticketId, newStatus) {
+      if (!newStatus) return;
+      if (await updateTicketStatus(ticketId, newStatus)) {
+        await renderSupport();
+      }
+    };
+
+    window.promptReply = async function(ticketId) {
+      const message = prompt('Enter your reply:');
+      if (!message || !message.trim()) return;
+      
+      if (await addTicketReply(ticketId, message.trim())) {
+        await renderSupport();
+      }
+    };
+
+    window.showReplyModal = function(ticketId) {
+      const message = prompt('Enter your reply:');
+      if (message && message.trim()) {
+        const adminSession = JSON.parse(localStorage.getItem('adminAuth') || '{}');
+        addTicketReply(ticketId, adminSession.email || 'Admin', message.trim());
+        renderSupport();
+      }
+    };
+
+    // Analytics render function
+    async function renderAnalytics() {
+      const analytics = await loadAnalytics();
+
+      // Update overview stats
+      document.getElementById('analytics-total-users').textContent = analytics.totalUsers || 0;
+      document.getElementById('analytics-active-users').textContent = analytics.activeUsers || 0;
+      document.getElementById('analytics-frozen-users').textContent = analytics.frozenUsers || 0;
+      document.getElementById('analytics-kyc-verified').textContent = analytics.verifiedUsers || 0;
+      document.getElementById('analytics-vip-users').textContent = '0'; // Not in API yet
+      document.getElementById('analytics-total-assets').textContent = '$' + ((analytics.totalDeposits || 0) - (analytics.totalWithdrawals || 0)).toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('analytics-total-profit').textContent = '$0'; // Not in API yet
+      document.getElementById('analytics-avg-balance').textContent = '$0'; // Not in API yet
+
+      // Update activity metrics
+      document.getElementById('analytics-activity-24h').textContent = '0'; // Not in API yet
+      document.getElementById('analytics-activity-7d').textContent = '0'; // Not in API yet
+
+      // Top users
+      const topUsersDiv = document.getElementById('analytics-top-users');
+      if (!analytics.topUsers || analytics.topUsers.length === 0) {
+        topUsersDiv.innerHTML = '<div class="info-box">No user data available</div>';
+      } else {
+        topUsersDiv.innerHTML = `
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: rgba(56, 97, 251, 0.2); border-bottom: 2px solid #3861fb;">
+                <th style="color: #f0ad4e; padding: 10px; text-align: left;">Rank</th>
+                <th style="color: #f0ad4e; padding: 10px; text-align: left;">Name</th>
+                <th style="color: #f0ad4e; padding: 10px; text-align: left;">Email</th>
+                <th style="color: #f0ad4e; padding: 10px; text-align: right;">Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${analytics.topUsers.map((user, idx) => `
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                  <td style="color: #a1a1a9; padding: 10px;">#${idx + 1}</td>
+                  <td style="color: #d1d5db; padding: 10px;">${user.name}</td>
+                  <td style="color: #a1a1a9; padding: 10px; font-size: 0.9rem;">${user.email}</td>
+                  <td style="color: #f0ad4e; padding: 10px; text-align: right; font-weight: 600;">$${user.balance.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+    }
+
+    // Initial render
+    renderDashboard();
+  </script>
+</body>
+</html>

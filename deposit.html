@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deposit Trading Account</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="header" id="app-header"></header>
+  <main class="container">
+    <div class="back-link"><a href="index.html">← Back to Dashboard</a></div>
+    
+    <div class="qa-indicator" style="margin-bottom:20px">🔬 Deposit Feed</div>
+    
+    <div class="card">
+      <h2 class="card-title">Add Funds to Account</h2>
+      <p class="card-subtitle">Account Balance Adjustment</p>
+      
+      <div style="margin-top:20px">
+        <div class="form-group">
+          <label>Select Network</label>
+          <select id="network" class="input">
+            <option value="eth">ETH (Ethereum)</option>
+            <option value="btc">BTC (Bitcoin)</option>
+            <option value="solana">Solana</option>
+            <option value="trc20">TRC-20 (Tron)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Selected Asset</label>
+          <div id="asset-display" style="padding:12px;background:#f5f5f5;border-radius:8px;font-weight:600;color:#333">
+            ETH - Ethereum Network
+          </div>
+        </div>
+
+        <div class="deposit-box" style="margin-top:20px;padding:20px;background:#f5f5f5;border-radius:8px;text-align:center">
+          <div style="font-size:13px;color:#666;margin-bottom:10px">QR Code</div>
+          <div id="qr-placeholder" style="width:200px;height:200px;margin:0 auto;background:#ddd;display:flex;align-items:center;justify-content:center;border-radius:8px">
+            <div class="small">█ █ █ QR █ █ █<br/>█ SIM █ █ █<br/>█ █ █ █ █ █</div>
+          </div>
+        </div>
+
+        <div style="margin-top:20px" class="address-box">
+          <label>Wallet Address</label>
+          <div style="background:#565252;padding:10px;border-radius:8px;word-break:break-all;font-family:monospace;font-size:12px">
+            0xB443B078d4b5fe5fb304bE9AEEe2B0B1Db0a02F302700Af88EC
+          </div>
+          <button class="cta" style="margin-top:10px;width:100%" onclick="copyAddress()">Copy Address</button>
+        </div>
+
+        <div style="margin-top:20px" class="warning-box">
+          <strong>⚠️ IMPORTANT</strong>
+          <p class="small">Verify real crypto wallets or addresses before sending.</p>
+        </div>
+
+        <div class="form-group" style="margin-top:20px">
+          <label>Deposit Amount (USD Equivalent)</label>
+          <input type="number" id="deposit-amt" class="input" placeholder="Enter amount" min="10">
+          <div class="small" style="margin-top:8px;color:#f59e0b">⚠️ Send exact amount in crypto to the address above to avoid verification delays</div>
+          <button class="cta cta-full" style="margin-top:15px" id="submit-deposit-btn">SUBMIT DEPOSIT ORDER</button>
+          <div id="deposit-msg" class="small" style="margin-top:10px;text-align:center"></div>
+        </div>
+
+        <div style="margin-top:30px" class="divider"></div>
+
+        <h3 style="margin-top:20px">Deposit Status & History</h3>
+        <div id="deposits-history" style="margin-top:15px"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lightweight-charts@3.10.0/dist/lightweight-charts.standalone.production.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module">
+    import { state, getCurrentUser, addHistory, saveState } from './js/userData.js';
+
+    // Network configuration with primary asset, wallet addresses, and QR codes
+    const networkConfig = {
+      eth: {
+        name: 'ETH (Ethereum)',
+        asset: { value: 'eth', label: 'ETH - Ethereum Network', address: '0x44e71846a7886122697620a8748283e04363d7b1' },
+        qrCode: `
+          <img src="images/qr/eth-qr.png" alt="ETH QR Code" style="width:200px;height:200px;border:2px solid #627EEA;border-radius:8px;background:#f5f5f5" 
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div style="width:200px;height:200px;background:#f5f5f5;border:2px solid #627EEA;border-radius:8px;display:none;align-items:center;justify-content:center;flex-direction:column;color:#666">
+            <div style="font-size:40px;margin-bottom:10px">📷</div>
+            <div style="font-size:12px;text-align:center">ETH QR Code<br/>Placeholder</div>
+            <div style="font-size:10px;margin-top:5px;opacity:0.7">Add image path above</div>
+          </div>
+        `
+      },
+      btc: {
+        name: 'BTC (Bitcoin)',
+        asset: { value: 'btc', label: 'BTC - Bitcoin Network', address: 'bc1q6nlk3xt4hz8zkyavs8g89kxfqspj3yjk4n6yn6' },
+        qrCode: `
+          <img src="images/qr/btc-qr.png" alt="BTC QR Code" style="width:200px;height:200px;border:2px solid #F7931A;border-radius:8px;background:#f5f5f5" 
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div style="width:200px;height:200px;background:#f5f5f5;border:2px solid #F7931A;border-radius:8px;display:none;align-items:center;justify-content:center;flex-direction:column;color:#666">
+            <div style="font-size:40px;margin-bottom:10px">📷</div>
+            <div style="font-size:12px;text-align:center">BTC QR Code<br/>Placeholder</div>
+            <div style="font-size:10px;margin-top:5px;opacity:0.7">Add image path above</div>
+          </div>
+        `
+      },
+      solana: {
+        name: 'Solana',
+        asset: { value: 'sol', label: 'SOL - Solana Network', address: '7bnAdcn365Vi1L1FmGMQhy3pkD44VG5fHE4ywzb4Bp1Z' },
+        qrCode: `
+          <img src="images/qr/sol-qr.png" alt="Solana QR Code" style="width:200px;height:200px;border:2px solid #14F195;border-radius:8px;background:#f5f5f5" 
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div style="width:200px;height:200px;background:#f5f5f5;border:2px solid #14F195;border-radius:8px;display:none;align-items:center;justify-content:center;flex-direction:column;color:#666">
+            <div style="font-size:40px;margin-bottom:10px">📷</div>
+            <div style="font-size:12px;text-align:center">Solana QR Code<br/>Placeholder</div>
+            <div style="font-size:10px;margin-top:5px;opacity:0.7">Add image path above</div>
+          </div>
+        `
+      },
+      trc20: {
+        name: 'Tether(USDT TRC20)',
+        asset: { value: 'trc', label: 'TRC - Tron Network', address: 'TYc8y2ts17WEv3oHRgkuWW6QDTLnPjZYMB' },
+        qrCode: `
+          <img src="images/qr/trc20-qr.png" alt="TRC-20 QR Code" style="width:200px;height:200px;border:2px solid #EB0029;border-radius:8px;background:#f5f5f5" 
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div style="width:200px;height:200px;background:#f5f5f5;border:2px solid #EB0029;border-radius:8px;display:none;align-items:center;justify-content:center;flex-direction:column;color:#666">
+            <div style="font-size:40px;margin-bottom:10px">📷</div>
+            <div style="font-size:12px;text-align:center">TRC-20 QR Code<br/>Placeholder</div>
+            <div style="font-size:10px;margin-top:5px;opacity:0.7">Add image path above</div>
+          </div>
+        `
+      }
+    };
+
+    let currentWalletAddress = '';
+
+    function renderHeader() {
+      const user = getCurrentUser();
+      document.getElementById('app-header').innerHTML = `
+        <div class="brand"><div class="logo">FX</div><div>
+          <div style="font-weight:800">Deposit</div>
+          <div class="small">User: ${user.name}</div>
+        </div></div>
+        <div class="nav">
+          <span class="badge-sim">MAKE DEPOSIT</span>
+        </div>`;
+    }
+
+    function updateNetworkData() {
+      const networkSelect = document.getElementById('network');
+      const selectedNetwork = networkSelect.value;
+      const config = networkConfig[selectedNetwork];
+
+      if (!config) {
+        console.error('Network config not found for:', selectedNetwork);
+        return;
+      }
+
+      // Update asset display
+      const assetDisplay = document.getElementById('asset-display');
+      if (assetDisplay) {
+        assetDisplay.textContent = config.asset.label;
+      }
+      
+      // Update wallet address
+      currentWalletAddress = config.asset.address;
+      const addressBox = document.querySelector('.address-box div');
+      if (addressBox) {
+        addressBox.textContent = config.asset.address;
+      }
+      
+      // Update QR Code
+      const qrPlaceholder = document.getElementById('qr-placeholder');
+      if (qrPlaceholder) {
+        qrPlaceholder.innerHTML = config.qrCode;
+      }
+    }
+
+    function init() {
+      // Initialize on page load
+      const networkSelect = document.getElementById('network');
+      if (networkSelect) {
+        networkSelect.addEventListener('change', updateNetworkData);
+      }
+      
+      // Set initial data
+      updateNetworkData();
+    }
+
+    window.copyAddress = function() {
+      navigator.clipboard.writeText(currentWalletAddress);
+      alert('Address copied to clipboard: ' + currentWalletAddress);
+    };
+
+    document.getElementById('submit-deposit-btn').addEventListener('click', () => {
+      const amt = Number(document.getElementById('deposit-amt').value || 0);
+      const user = getCurrentUser();
+      const network = document.getElementById('network').value;
+      const asset = networkConfig[network].asset.value;
+      
+      if (amt <= 0) {
+        document.getElementById('deposit-msg').innerText = '❌ Enter a valid amount';
+        document.getElementById('deposit-msg').style.color = '#d03030';
+        return;
+      }
+
+      if (amt < 10) {
+        document.getElementById('deposit-msg').innerText = '❌ Minimum deposit is $10';
+        document.getElementById('deposit-msg').style.color = '#d03030';
+        return;
+      }
+
+      // Create pending deposit order
+      if (!state.deposits) state.deposits = [];
+      const depositOrder = {
+        id: 'd_' + Date.now(),
+        userId: user.id,
+        amount: amt,
+        network: network,
+        asset: asset,
+        status: 'pending',
+        walletAddress: currentWalletAddress,
+        ts: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 30 * 60000).toISOString() // 30 min expiry
+      };
+      state.deposits.unshift(depositOrder);
+      
+      addHistory(user.id, 'deposit.submitted', {
+        id: depositOrder.id,
+        amount: amt,
+        network: network,
+        asset: asset,
+        status: 'pending'
+      });
+      saveState(state);
+
+      document.getElementById('deposit-msg').innerText = `✅ Deposit request submitted successfully. Amount: $${amt.toFixed(2)}. Your deposit will be credited once confirmed on the blockchain (typically 10-30 minutes).`;
+      document.getElementById('deposit-msg').style.color = '#0b9d58';
+      document.getElementById('submit-deposit-btn').disabled = true;
+      document.getElementById('submit-deposit-btn').innerText = 'Processing...';
+      document.getElementById('deposit-amt').value = '';
+      
+      renderDeposits();
+    });
+
+    function renderDeposits() {
+      const user = getCurrentUser();
+      const userDeposits = (state.deposits || []).filter(d => d.userId === user.id);
+      const list = document.getElementById('deposits-history');
+      
+      if (userDeposits.length === 0) {
+        list.innerHTML = '<p class="small">No deposits yet</p>';
+        return;
+      }
+
+      list.innerHTML = userDeposits.map(d => {
+        const statusColor = d.status === 'pending' ? '#f59e0b' : d.status === 'confirmed' ? '#0b9d58' : '#d03030';
+        const statusLabel = d.status === 'pending' ? '⏳ PENDING CONFIRMATION' : d.status === 'confirmed' ? '✅ CONFIRMED' : '❌ EXPIRED';
+        
+        return `
+          <div class="card" style="margin-bottom:10px;padding:12px;border-left:4px solid ${statusColor}">
+            <div class="kv">
+              <div>
+                <div style="font-weight:700">$${d.amount.toLocaleString()}</div>
+                <div class="small">${d.asset.toUpperCase()} on ${d.network.toUpperCase()}</div>
+              </div>
+              <div style="text-align:right">
+                <div class="small" style="color:${statusColor};font-weight:700">${statusLabel}</div>
+                <div class="small">${new Date(d.ts).toLocaleString()}</div>
+              </div>
+            </div>
+            ${d.status === 'pending' ? `
+              <div class="small" style="margin-top:8px;color:#f59e0b">
+                ⏳ Waiting for blockchain confirmation... (Expires: ${new Date(d.expiresAt).toLocaleTimeString()})
+              </div>
+            ` : d.status === 'confirmed' ? `
+              <div class="small" style="margin-top:8px;color:#0b9d58">
+                ✅ Successfully credited to your account
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    renderHeader();
+    renderDeposits();
+    init();
+  </script>
+</body>
+</html>

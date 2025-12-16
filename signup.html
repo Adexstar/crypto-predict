@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - Investment Prediction</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { margin: 0; padding: 0; background: var(--bg-primary); }
+    .signup-wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .signup-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1200px; width: 100%; }
+    .signup-left { display: flex; flex-direction: column; justify-content: center; }
+    .signup-header h1 { color: var(--accent-gold); font-size: 2.5rem; margin: 0 0 15px; font-weight: 800; }
+    .signup-header p { color: var(--text-secondary); font-size: 1.1rem; margin: 0 0 30px; line-height: 1.6; }
+    .signup-benefits { list-style: none; padding: 0; margin: 30px 0; }
+    .signup-benefits li { color: var(--text-secondary); margin: 15px 0; padding-left: 30px; position: relative; }
+    .signup-benefits li:before { content: "✓"; position: absolute; left: 0; color: var(--accent-gold); font-weight: bold; font-size: 1.2rem; }
+    
+    .signup-right { display: flex; align-items: center; }
+    .signup-card { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px; width: 100%; box-shadow: var(--shadow-lg); }
+    .signup-card-header { text-align: center; margin-bottom: 30px; }
+    .signup-logo { font-size: 3rem; margin-bottom: 15px; }
+    .signup-card h2 { color: var(--text-primary); font-size: 1.8rem; margin: 0 0 10px; }
+    .signup-card-subtitle { color: var(--text-secondary); font-size: 0.9rem; }
+    
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; color: var(--text-secondary); font-weight: 500; margin-bottom: 8px; font-size: 0.9rem; }
+    .form-group input { width: 100%; padding: 12px 15px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem; transition: all 0.3s; font-family: inherit; box-sizing: border-box; }
+    .form-group input:focus { outline: none; background: rgba(255,255,255,0.1); border-color: var(--accent-gold); }
+    .form-group input::placeholder { color: var(--text-muted); }
+    
+    .signup-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--accent-gold) 0%, #d89b3f 100%); color: #0f0f23; border: none; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
+    .signup-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(240, 173, 78, 0.3); }
+    .signup-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    
+    .form-message { padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; display: none; }
+    .form-message.success { background: rgba(5, 178, 108, 0.1); border: 1px solid rgba(5, 178, 108, 0.3); color: #05b26c; }
+    .form-message.error { background: rgba(246, 70, 93, 0.1); border: 1px solid rgba(246, 70, 93, 0.3); color: #f6465d; }
+    
+    .login-link { text-align: center; margin-top: 20px; }
+    .login-link a { color: var(--accent-gold); text-decoration: none; font-weight: 600; transition: all 0.3s; }
+    .login-link a:hover { color: #d89b3f; }
+    
+    .password-strength { font-size: 0.8rem; margin-top: 4px; padding: 6px; border-radius: 4px; display: none; }
+    .strength-weak { background: rgba(246, 70, 93, 0.1); color: #f6465d; }
+    .strength-fair { background: rgba(240, 173, 78, 0.1); color: #f0ad4e; }
+    .strength-good { background: rgba(5, 178, 108, 0.1); color: #05b26c; }
+    
+    @media (max-width: 768px) {
+      .signup-container { grid-template-columns: 1fr; gap: 30px; }
+      .signup-left { display: none; }
+      .signup-card { padding: 30px; }
+      .signup-header h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-wrapper">
+    <div class="signup-container">
+      <!-- Left Side - Features -->
+      <div class="signup-left">
+        <div class="signup-header">
+          <h1>Join Today</h1>
+          <p>Create your account and start trading with realistic market data</p>
+        </div>
+        <ul class="signup-benefits">
+          <li>Practice with realistic market data</li>
+          <li>Test strategies risk-free</li>
+          <li>Real-time portfolio tracking</li>
+          <li>Advanced charting tools</li>
+          <li>Instant trade execution</li>
+        </ul>
+      </div>
+
+      <!-- Right Side - Signup Form -->
+      <div class="signup-right">
+        <div class="signup-card">
+          <div class="signup-card-header">
+            <div class="signup-logo">📊</div>
+            <h2>Create Account</h2>
+            <p class="signup-card-subtitle">Start your investment journey</p>
+          </div>
+
+          <div class="form-message" id="form-message"></div>
+
+          <div class="form-group">
+            <label for="signup-name">Full Name</label>
+            <input type="text" id="signup-name" placeholder="John Doe" autocomplete="name">
+          </div>
+
+          <div class="form-group">
+            <label for="signup-email">Email Address</label>
+            <input type="email" id="signup-email" placeholder="your@email.com" autocomplete="email">
+          </div>
+
+          <div class="form-group">
+            <label for="signup-password">Password</label>
+            <input type="password" id="signup-password" placeholder="••••••••" autocomplete="new-password">
+            <div class="password-strength" id="password-strength"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="signup-confirm">Confirm Password</label>
+            <input type="password" id="signup-confirm" placeholder="••••••••" autocomplete="new-password">
+          </div>
+
+          <button class="signup-btn" id="signup-btn">Create Account</button>
+
+          <div class="login-link">
+            Already have an account? <a href="login.html">Sign In</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="js/api-config.js"></script>
+  <script>
+    const messageEl = document.getElementById('form-message');
+    const signupBtn = document.getElementById('signup-btn');
+    const passwordEl = document.getElementById('signup-password');
+    const strengthEl = document.getElementById('password-strength');
+    
+    // Password strength indicator
+    passwordEl.addEventListener('input', () => {
+      const password = passwordEl.value;
+      let strength = 'weak';
+      let strengthText = '❌ Too weak';
+      
+      if (password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password)) {
+        strength = 'good';
+        strengthText = '✅ Strong password';
+      } else if (password.length >= 6) {
+        strength = 'fair';
+        strengthText = '⚠️ Fair password';
+      }
+      
+      strengthEl.className = `password-strength strength-${strength}`;
+      strengthEl.innerText = strengthText;
+      strengthEl.style.display = 'block';
+    });
+    
+    function showMessage(msg, type = 'error') {
+      messageEl.className = `form-message ${type}`;
+      messageEl.innerText = msg;
+      messageEl.style.display = 'block';
+    }
+    
+    function hideMessage() {
+      messageEl.style.display = 'none';
+    }
+    
+    signupBtn.addEventListener('click', () => {
+      const name = document.getElementById('signup-name').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
+      const password = document.getElementById('signup-password').value;
+      const confirm = document.getElementById('signup-confirm').value;
+      
+      // Validation
+      if (!name) {
+        showMessage('❌ Please enter your full name');
+        return;
+      }
+      
+      if (!email) {
+        showMessage('❌ Please enter your email');
+        return;
+      }
+      
+      if (password.length < 6) {
+        showMessage('❌ Password must be at least 6 characters');
+        return;
+      }
+      
+      if (password !== confirm) {
+        showMessage('❌ Passwords do not match');
+        return;
+      }
+      
+      // Register user via API
+      signupBtn.disabled = true;
+      signupBtn.innerText = 'Creating Account...';
+      
+      try {
+        const response = await AuthAPI.register({ name, email, password });
+        
+        if (response.message && response.message.includes('verify')) {
+          showMessage('✅ Account created! Please check your email for verification code.', 'success');
+          setTimeout(() => {
+            window.location.href = 'verify-email.html';
+          }, 2000);
+        } else {
+          showMessage('✅ Account created! Redirecting...', 'success');
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 1500);
+        }
+      } catch (error) {
+        showMessage(`❌ ${error.message || 'Registration failed. Please try again.'}`);
+        signupBtn.disabled = false;
+        signupBtn.innerText = 'Create Account';
+      }
+    });
+    
+    // Enter key to submit
+    document.getElementById('signup-confirm').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') signupBtn.click();
+    });
+  </script>
+</body>
+</html>

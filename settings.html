@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Investment Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%); color: #fff; min-height: 100vh; }
+        
+        .navbar { background: rgba(26, 26, 46, 0.95); border-bottom: 1px solid #3861fb; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .navbar h1 { font-size: 1.5rem; color: #f0ad4e; }
+        .navbar-links { display: flex; gap: 20px; align-items: center; }
+        .navbar-links a { color: #f0ad4e; text-decoration: none; font-size: 0.95rem; transition: color 0.3s; }
+        .navbar-links a:hover { color: #fff; }
+        .logout-btn { background: #f6465d; color: #fff; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 0.9rem; transition: background 0.3s; }
+        .logout-btn:hover { background: #e63547; }
+        
+        .container { max-width: 900px; margin: 30px auto; padding: 20px; }
+        
+        .settings-header { background: rgba(56, 97, 251, 0.1); border-left: 4px solid #3861fb; padding: 20px; margin-bottom: 30px; border-radius: 8px; }
+        .settings-header h2 { color: #f0ad4e; margin-bottom: 10px; }
+        .settings-header p { color: #aaa; font-size: 0.95rem; }
+        
+        .settings-section { background: rgba(26, 26, 46, 0.8); border: 1px solid #3861fb; padding: 25px; margin-bottom: 20px; border-radius: 8px; }
+        .settings-section h3 { color: #f0ad4e; margin-bottom: 20px; font-size: 1.1rem; }
+        
+        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(56, 97, 251, 0.2); }
+        .setting-item:last-child { border-bottom: none; }
+        
+        .setting-info h4 { color: #fff; font-size: 1rem; margin-bottom: 5px; }
+        .setting-info p { color: #aaa; font-size: 0.9rem; }
+        
+        .toggle-switch { position: relative; display: inline-block; width: 60px; height: 30px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: 0.4s; border-radius: 30px; }
+        .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px; background-color: white; transition: 0.4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #3861fb; }
+        input:checked + .slider:before { transform: translateX(30px); }
+        
+        .select-dropdown { padding: 10px; background: rgba(15, 15, 35, 0.8); border: 1px solid #3861fb; color: #fff; border-radius: 5px; font-size: 0.95rem; cursor: pointer; }
+        .select-dropdown:focus { outline: none; border-color: #f0ad4e; }
+        .select-dropdown option { background: #0f0f23; color: #fff; }
+        
+        .btn { padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: 500; transition: all 0.3s; }
+        .btn-primary { background: #3861fb; color: #fff; }
+        .btn-primary:hover { background: #2a48cc; }
+        .btn-secondary { background: transparent; color: #f0ad4e; border: 1px solid #f0ad4e; }
+        .btn-secondary:hover { background: rgba(240, 173, 78, 0.1); }
+        .btn-danger { background: #f6465d; color: #fff; }
+        .btn-danger:hover { background: #e63547; }
+        
+        .alert { padding: 15px; border-radius: 5px; margin-bottom: 20px; display: none; }
+        .alert-success { background: rgba(5, 178, 108, 0.2); border: 1px solid #05b26c; color: #05b26c; }
+        .alert-error { background: rgba(246, 70, 93, 0.2); border: 1px solid #f6465d; color: #f6465d; }
+        .alert.show { display: block; }
+        
+        .danger-zone { background: rgba(246, 70, 93, 0.1); border-left: 4px solid #f6465d; padding: 20px; margin-top: 20px; border-radius: 8px; }
+        .danger-zone h4 { color: #f6465d; margin-bottom: 10px; }
+        .danger-zone p { color: #aaa; font-size: 0.9rem; margin-bottom: 15px; }
+        
+        @media (max-width: 1024px) {
+            .container { max-width: 800px; margin: 20px auto; padding: 15px; }
+            .settings-section { padding: 20px; }
+        }
+        
+        @media (max-width: 768px) {
+            .navbar { padding: 12px 15px; }
+            .navbar h1 { font-size: 1.2rem; }
+            .navbar-links { gap: 10px; }
+            .navbar-links a { font-size: 0.85rem; }
+            .container { margin: 15px auto; padding: 10px; }
+            .settings-header { padding: 15px; }
+            .settings-section { padding: 15px; }
+            .setting-item { flex-direction: column; align-items: flex-start; }
+            .setting-info { margin-bottom: 15px; }
+        }
+        
+        @media (max-width: 480px) {
+            .navbar { padding: 10px; }
+            .navbar h1 { font-size: 1rem; }
+            .navbar-links { flex-direction: column; gap: 5px; width: 100%; }
+            .navbar-links a { font-size: 0.8rem; }
+            .container { margin: 10px auto; padding: 8px; }
+            .settings-header { padding: 12px; }
+            .settings-section { padding: 12px; }
+            .btn { padding: 10px 16px; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Settings</h1>
+        <div class="navbar-links">
+            <a href="index.html">Dashboard</a>
+            <a href="profile.html">Profile</a>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div id="alertBox" class="alert"></div>
+        
+        <div class="settings-header">
+            <h2>Preferences & Settings</h2>
+            <p>Customize your platform experience and notification preferences</p>
+        </div>
+        
+        <!-- Display Settings -->
+        <div class="settings-section">
+            <h3>Display Settings</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>Dark Mode</h4>
+                    <p>Currently enabled (system default)</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="darkMode" checked onchange="updateSetting('darkMode', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>Compact View</h4>
+                    <p>Reduce padding and font sizes for more content</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="compactView" onchange="updateSetting('compactView', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>Display Currency</h4>
+                    <p>Currency format for all values</p>
+                </div>
+                <select id="currency" class="select-dropdown" onchange="updateSetting('currency', this.value)">
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="JPY">JPY (¥)</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Notification Settings -->
+        <div class="settings-section">
+            <h3>Notifications</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>Email Notifications</h4>
+                    <p>Receive email updates for important events</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="emailNotif" onchange="updateSetting('emailNotif', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>Price Alerts</h4>
+                    <p>Get notified when prices reach your target</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="priceAlerts" onchange="updateSetting('priceAlerts', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>Trade Confirmations</h4>
+                    <p>Confirm every trade execution</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="tradeConfirm" checked onchange="updateSetting('tradeConfirm', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <!-- Privacy Settings -->
+        <div class="settings-section">
+            <h3>Privacy & Security</h3>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>Two-Factor Authentication</h4>
+                    <p>Add extra security to your account</p>
+                </div>
+                <button class="btn btn-secondary" onclick="alert('2FA setup coming soon')">Configure</button>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>Login Sessions</h4>
+                    <p>Manage active login sessions</p>
+                </div>
+                <button class="btn btn-secondary" onclick="alert('Session management coming soon')">View Sessions</button>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h4>Data & Privacy</h4>
+                    <p>Review our privacy policy</p>
+                </div>
+                <a href="privacy.html" class="btn btn-secondary" style="text-decoration: none;">View Policy</a>
+            </div>
+        </div>
+        
+        <!-- Danger Zone -->
+        <div class="settings-section">
+            <div class="danger-zone">
+                <h4>Danger Zone</h4>
+                <p>These actions cannot be undone. Please proceed with caution.</p>
+                <button class="btn btn-danger" onclick="handleDeleteAccount()">Delete Account Permanently</button>
+            </div>
+        </div>
+        
+        <!-- Save Settings -->
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="btn btn-primary" onclick="saveAllSettings()">Save All Settings</button>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { getCurrentUser } from './js/userData.js';
+        
+        let STORAGE_KEY;
+        
+        // Load settings on page load
+        function loadSettings() {
+            const user = getCurrentUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            STORAGE_KEY = 'platformSettings_' + user.id;
+            const settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            
+            document.getElementById('darkMode').checked = settings.darkMode !== false;
+            document.getElementById('compactView').checked = settings.compactView || false;
+            document.getElementById('currency').value = settings.currency || 'USD';
+            document.getElementById('emailNotif').checked = settings.emailNotif !== false;
+            document.getElementById('priceAlerts').checked = settings.priceAlerts || false;
+            document.getElementById('tradeConfirm').checked = settings.tradeConfirm !== false;
+        }
+        
+        window.updateSetting = function(key, value) {
+            const settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            settings[key] = value;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+            showAlert('Setting updated', 'success');
+        };
+        
+        window.saveAllSettings = function() {
+            const settings = {
+                darkMode: document.getElementById('darkMode').checked,
+                compactView: document.getElementById('compactView').checked,
+                currency: document.getElementById('currency').value,
+                emailNotif: document.getElementById('emailNotif').checked,
+                priceAlerts: document.getElementById('priceAlerts').checked,
+                tradeConfirm: document.getElementById('tradeConfirm').checked,
+                savedAt: new Date().toISOString()
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+            showAlert('All settings saved successfully!', 'success');
+        };
+        
+        window.handleDeleteAccount = function() {
+            if (confirm('Are you sure? This action cannot be undone. Type "DELETE" to confirm.')) {
+                const confirmation = prompt('Type DELETE to permanently remove your account:');
+                if (confirmation === 'DELETE') {
+                    // In a real app, this would delete the account from database
+                    showAlert('Account deletion requested. This feature is for demo purposes only.', 'error');
+                } else {
+                    showAlert('Account deletion cancelled', 'error');
+                }
+            }
+        };
+        
+        window.logout = function() {
+            sessionStorage.clear();
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        };
+        
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.textContent = message;
+            alertBox.className = 'alert alert-' + type + ' show';
+            setTimeout(() => alertBox.classList.remove('show'), 5000);
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadSettings);
+        } else {
+            loadSettings();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Contracts — Forensic Sim</title><link rel="stylesheet" href="css/style.css"></head>
+<body>
+  <header class="header" id="app-header"></header>
+  <main class="container" id="app-main"></main>
+  <script src="https://unpkg.com/lightweight-charts@3.10.0/dist/lightweight-charts.standalone.production.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module">
+    import './js/app.js';
+    window.addEventListener('load', ()=>{ setTimeout(()=>{ document.querySelector('select') && document.querySelector('select').dispatchEvent(new Event('change')); },100); });
+  </script>
+</body></html>

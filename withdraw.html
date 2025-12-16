@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Withdraw Trading</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="header" id="app-header"></header>
+  <main class="container">
+    <div class="back-link"><a href="index.html">← Back to Dashboard</a></div>
+    
+    <div class="qa-indicator" style="margin-bottom:20px">🔬 ACCOUNT Withdrawal</div>
+    
+    <div class="card">
+      <h2 class="card-title">Remove Funds from Account</h2>
+      <p class="card-subtitle">Balance Adjustment</p>
+      
+      <div style="margin-top:20px">
+        <div class="info-box">
+          <strong>Current Balance: </strong><span id="balance-display">$0.00</span>
+        </div>
+
+        <div class="form-group" style="margin-top:20px">
+          <label>Select Network</label>
+          <select id="withdraw-network" class="input">
+            <option value="ethereum">Ethereum (ERC20)</option>
+            <option value="bsc">Binance Smart Chain (BEP20)</option>
+            <option value="polygon">Polygon (MATIC)</option>
+            <option value="tron">Tron (TRC20)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Wallet Address</label>
+          <input type="text" id="wallet-addr" class="input" placeholder="Your wallet address">
+        </div>
+
+        <div class="form-group">
+          <label>Withdrawal Amount</label>
+          <input type="number" id="withdraw-amt" class="input" placeholder="Enter amount">
+          <div class="small" style="margin-top:5px">Minimum: $100</div>
+        </div>
+
+        <div class="form-group" id="fee-info" style="background:#7c3232;padding:10px;border-radius:8px;display:none">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span>Withdrawal Amount:</span>
+            <span id="fee-amount">$0.00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span>Network Fee (1%):</span>
+            <span id="fee-network">$0.00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid #dddddd;padding-top:8px;font-weight:700">
+            <span>You Will Receive:</span>
+            <span id="fee-receive">$0.00</span>
+          </div>
+        </div>
+
+        <button class="cta cta-full" id="withdraw-btn" style="margin-top:20px">Request Withdrawal</button>
+        <div id="withdraw-msg" class="small" style="margin-top:10px;text-align:center"></div>
+
+        <div style="margin-top:30px" class="divider"></div>
+
+        <h3 style="margin-top:20px">Withdrawal Requests</h3>
+        <div id="withdrawals-list" style="margin-top:15px"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lightweight-charts@3.10.0/dist/lightweight-charts.standalone.production.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module">
+    import { state, getCurrentUser, addHistory, saveState } from './js/userData.js';
+
+    function renderHeader() {
+      const user = getCurrentUser();
+      document.getElementById('app-header').innerHTML = `
+        <div class="brand"><div class="logo">FX</div><div>
+          <div style="font-weight:800">Withdraw</div>
+          <div class="small">User: ${user.name}</div>
+        </div></div>
+        <div class="nav">
+          <span class="badge-sim">ACCESS WITHDRAWAL</span>
+        </div>`;
+    }
+
+    function renderPage() {
+      const user = getCurrentUser();
+      document.getElementById('balance-display').innerText = `$${user.balance.toLocaleString(undefined, {minimumFractionDigits:2})}`;
+      
+      if (user.frozen) {
+        document.getElementById('withdraw-msg').innerHTML = '⚠️ <strong>Account is FROZEN.</strong> Withdrawals blocked. Contact support.';
+        document.getElementById('withdraw-msg').style.color = '#d03030';
+        document.getElementById('withdraw-btn').disabled = true;
+      }
+
+      // Render pending withdrawals
+      const userWithdrawals = (state.withdrawals || []).filter(w => w.userId === user.id);
+      const list = document.getElementById('withdrawals-list');
+      if (userWithdrawals.length === 0) {
+        list.innerHTML = '<p class="small">No pending requests</p>';
+      } else {
+        list.innerHTML = userWithdrawals.map(w => `
+          <div class="card" style="margin-bottom:10px;padding:10px;background:#fff8f0">
+            <div class="kv">
+              <div><strong>$${w.amount.toLocaleString()}</strong></div>
+              <div class="small" style="color:#${w.status === 'approved' ? '0b9d58' : w.status === 'rejected' ? 'd03030' : 'f59e0b'}">${w.status.toUpperCase()}</div>
+            </div>
+            <div class="small" style="margin-top:5px">${new Date(w.ts).toLocaleString()}</div>
+          </div>
+        `).join('');
+      }
+    }
+
+    document.getElementById('withdraw-amt').addEventListener('input', (e) => {
+      const amt = Number(e.target.value || 0);
+      if (amt > 0) {
+        const fee = +(amt * 0.01).toFixed(2);
+        const receive = +(amt - fee).toFixed(2);
+        
+        document.getElementById('fee-info').style.display = 'block';
+        document.getElementById('fee-amount').innerText = `$${amt.toLocaleString()}`;
+        document.getElementById('fee-network').innerText = `$${fee.toLocaleString()}`;
+        document.getElementById('fee-receive').innerText = `$${receive.toLocaleString()}`;
+      } else {
+        document.getElementById('fee-info').style.display = 'none';
+      }
+    });
+
+    document.getElementById('withdraw-btn').addEventListener('click', () => {
+      const amt = Number(document.getElementById('withdraw-amt').value || 0);
+      const addr = document.getElementById('wallet-addr').value;
+      const user = getCurrentUser();
+      
+      if (user.frozen) {
+        document.getElementById('withdraw-msg').innerHTML = '⚠️ Account frozen. Cannot withdraw.';
+        document.getElementById('withdraw-msg').style.color = '#d03030';
+        return;
+      }
+
+      if (!addr) {
+        document.getElementById('withdraw-msg').innerText = '❌ Enter a wallet address';
+        document.getElementById('withdraw-msg').style.color = '#d03030';
+        return;
+      }
+
+      if (amt < 100) {
+        document.getElementById('withdraw-msg').innerText = '❌ Minimum withdrawal is $100';
+        document.getElementById('withdraw-msg').style.color = '#d03030';
+        return;
+      }
+
+      if (amt > user.balance) {
+        document.getElementById('withdraw-msg').innerText = '❌ Insufficient balance';
+        document.getElementById('withdraw-msg').style.color = '#d03030';
+        return;
+      }
+
+      // Create withdrawal request
+      if (!state.withdrawals) state.withdrawals = [];
+      const req = {
+        id: 'w_' + Date.now(),
+        userId: user.id,
+        amount: amt,
+        address: addr,
+        network: document.getElementById('withdraw-network').value,
+        status: 'pending',
+        ts: new Date().toISOString()
+      };
+      state.withdrawals.unshift(req);
+      
+      addHistory(user.id, 'withdraw.request', {id: req.id, amount: amt});
+      saveState(state);
+
+      document.getElementById('withdraw-msg').innerText = `✅ Withdrawal request submitted successfully. Amount: $${amt.toFixed(2)}. Your request is now under review and will be processed within 1-3 business days. You'll receive a confirmation email once approved.`;
+      document.getElementById('withdraw-msg').style.color = '#0b9d58';
+      document.getElementById('withdraw-amt').value = '';
+      document.getElementById('wallet-addr').value = '';
+      
+      renderPage();
+    });
+
+    renderHeader();
+    renderPage();
+  </script>
+</body>
+</html>
