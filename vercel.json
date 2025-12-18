@@ -1,31 +1,4 @@
 {
-  "buildCommand": "echo 'No build step required for static site'",
-  "outputDirectory": ".",
-  "framework": null,
-  "devCommand": null,
-  "installCommand": "npm install",
-  "env": {
-    "VITE_ADMIN_EMAIL": {
-      "description": "Admin login email address",
-      "required": true
-    },
-    "VITE_ADMIN_PASSWORD": {
-      "description": "Admin login password (use strong password)",
-      "required": true
-    },
-    "VITE_DEFAULT_USER_PASSWORD": {
-      "description": "Default password for demo user accounts",
-      "required": true
-    },
-    "VITE_ADMIN_PANEL_PASSWORD": {
-      "description": "Admin panel access password",
-      "required": true
-    },
-    "VITE_SYSTEM_MODE": {
-      "description": "System mode (SIMULATION_ONLY recommended)",
-      "value": "SIMULATION_ONLY"
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
