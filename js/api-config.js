@@ -7,7 +7,7 @@ const API_CONFIG = {
     
     // Production (Railway backend)
     // Update this after Railway deployment
-    PRODUCTION_URL: 'https://your-service.up.railway.app',
+    PRODUCTION_URL: 'crypto-predict-production-0b73.up.railway.app',
     
     // Auto-detect environment
     get BASE_URL() {
