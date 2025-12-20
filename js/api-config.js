@@ -130,8 +130,8 @@ const AuthAPI = {
         return response;
     },
     
-    async register(email, password, name) {
-        const response = await API.post('/auth/register', { email, password, name });
+    async register(data) {
+        const response = await API.post('/auth/register', data);
         
         if (response.token) {
             TokenManager.set(response.token);
