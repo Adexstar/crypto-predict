@@ -123,6 +123,7 @@
         </div>
     </div>
     
+    <script src="js/api-config.js"></script>
     <script type="module">
         import { getCurrentUser, getAnnouncements, recordAnnouncementView } from './js/userData.js';
         
@@ -177,12 +178,20 @@
         }
         
         window.logout = function() {
-            sessionStorage.clear();
-            localStorage.removeItem('currentUser');
-            window.location.href = 'login.html';
+            AuthAPI.logout();
         };
         
         loadAnnouncements();
+        
+        // Check authentication
+        (async () => {
+            try {
+                await AuthAPI.verify();
+            } catch (error) {
+                console.warn('Not authenticated, redirecting to login');
+                setTimeout(() => window.location.href = 'login.html', 2000);
+            }
+        })();
     </script>
 </body>
 </html>

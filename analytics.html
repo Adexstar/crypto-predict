@@ -218,12 +218,12 @@
         </table>
     </div>
 
+    <script src="js/api-config.js"></script>
     <script type="module">
         import { getCurrentUser, getUserAnalytics, getUserActivityTimeline } from './js/userData.js';
 
         function logout() {
-            localStorage.removeItem('currentUser');
-            window.location.href = 'landing.html';
+            AuthAPI.logout();
         }
 
         function renderAnalytics() {
@@ -288,6 +288,16 @@
 
         renderAnalytics();
         window.logout = logout;
+        
+        // Check authentication
+        (async () => {
+            try {
+                await AuthAPI.verify();
+            } catch (error) {
+                console.warn('Not authenticated, redirecting to login');
+                setTimeout(() => window.location.href = 'login.html', 2000);
+            }
+        })();
     </script>
 </body>
 </html>

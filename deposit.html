@@ -74,7 +74,9 @@
 
   <script src="https://unpkg.com/lightweight-charts@3.10.0/dist/lightweight-charts.standalone.production.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="js/api-config.js"></script>
   <script type="module">
+    // Check auth first
     import { state, getCurrentUser, addHistory, saveState } from './js/userData.js';
 
     // Network configuration with primary asset, wallet addresses, and QR codes
@@ -287,6 +289,16 @@
     renderHeader();
     renderDeposits();
     init();
+    
+    // Check authentication and redirect if needed
+    (async () => {
+      try {
+        await AuthAPI.verify();
+      } catch (error) {
+        console.warn('Not authenticated, redirecting to login');
+        setTimeout(() => window.location.href = 'login.html', 2000);
+      }
+    })();
   </script>
 </body>
 </html>
