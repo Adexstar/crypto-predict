@@ -18,6 +18,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust Railway's reverse proxy
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(helmet());
 
@@ -51,7 +54,11 @@ app.use(express.json());
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Use X-Forwarded-For header for IP (Railway/proxy setup)
+  skip: (req) => !req.ip
 });
 app.use('/api/', limiter);
 
