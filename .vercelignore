@@ -1,0 +1,6 @@
+# Ignore backend folder for Vercel frontend deployment
+backend/
+node_modules/
+.git/
+*.md
+!README.md
