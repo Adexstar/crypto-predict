@@ -97,7 +97,7 @@ router.post('/users/:userId/set-balance', async (req, res) => {
         action: 'set_balance',
         targetId: user.id,
         performedBy: req.user.email,
-        details: { oldBalance: user.balance, newBalance: balance }
+        details: JSON.stringify({ oldBalance: user.balance, newBalance: balance })
       }
     });
 
@@ -139,7 +139,7 @@ router.post('/users/:userId/inject-profit', async (req, res) => {
         action: 'inject_profit',
         targetId: user.id,
         performedBy: req.user.email,
-        details: { amount, oldBalance: user.balance, newBalance }
+        details: JSON.stringify({ amount, oldBalance: user.balance, newBalance })
       }
     });
 
@@ -171,7 +171,7 @@ router.post('/users/:userId/freeze', async (req, res) => {
         action: freeze ? 'freeze_account' : 'unfreeze_account',
         targetId: user.id,
         performedBy: req.user.email,
-        details: { frozen: freeze }
+        details: JSON.stringify({ frozen: freeze })
       }
     });
 
@@ -197,7 +197,7 @@ router.post('/users/:userId/kyc-lock', async (req, res) => {
         action: lock ? 'kyc_lock' : 'kyc_unlock',
         targetId: user.id,
         performedBy: req.user.email,
-        details: { kycLocked: lock }
+        details: JSON.stringify({ kycLocked: lock })
       }
     });
 

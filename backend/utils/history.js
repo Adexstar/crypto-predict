@@ -47,6 +47,6 @@ export function createHistoryEntry(action, meta = {}) {
   return {
     action,
     message: formatHistoryMessage(action, meta),
-    meta: meta || {},
+    meta: JSON.stringify(meta || {}),
   };
 }

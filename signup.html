@@ -1,212 +1,340 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign Up - Investment Prediction</title>
-  <link rel="stylesheet" href="css/dashboard.css">
-  <link rel="stylesheet" href="css/style.css">
+  <title>Sign Up - 24h Trading</title>
+  <link rel="stylesheet" href="/css/style.css">
   <style>
-    body { margin: 0; padding: 0; background: var(--bg-primary); }
-    .signup-wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .signup-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1200px; width: 100%; }
-    .signup-left { display: flex; flex-direction: column; justify-content: center; }
-    .signup-header h1 { color: var(--accent-gold); font-size: 2.5rem; margin: 0 0 15px; font-weight: 800; }
-    .signup-header p { color: var(--text-secondary); font-size: 1.1rem; margin: 0 0 30px; line-height: 1.6; }
-    .signup-benefits { list-style: none; padding: 0; margin: 30px 0; }
-    .signup-benefits li { color: var(--text-secondary); margin: 15px 0; padding-left: 30px; position: relative; }
-    .signup-benefits li:before { content: "✓"; position: absolute; left: 0; color: var(--accent-gold); font-weight: bold; font-size: 1.2rem; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     
-    .signup-right { display: flex; align-items: center; }
-    .signup-card { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px; width: 100%; box-shadow: var(--shadow-lg); }
-    .signup-card-header { text-align: center; margin-bottom: 30px; }
-    .signup-logo { font-size: 3rem; margin-bottom: 15px; }
-    .signup-card h2 { color: var(--text-primary); font-size: 1.8rem; margin: 0 0 10px; }
-    .signup-card-subtitle { color: var(--text-secondary); font-size: 0.9rem; }
-    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 440px;
+      padding: 50px 40px;
+    }
+
+    .logo { text-align: center; font-size: 3.5rem; margin-bottom: 10px; }
+    h1 { text-align: center; color: #1a1a2e; font-size: 2rem; margin-bottom: 8px; }
+    .subtitle { text-align: center; color: #666; font-size: 0.95rem; margin-bottom: 35px; }
+
     .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; color: var(--text-secondary); font-weight: 500; margin-bottom: 8px; font-size: 0.9rem; }
-    .form-group input { width: 100%; padding: 12px 15px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem; transition: all 0.3s; font-family: inherit; box-sizing: border-box; }
-    .form-group input:focus { outline: none; background: rgba(255,255,255,0.1); border-color: var(--accent-gold); }
-    .form-group input::placeholder { color: var(--text-muted); }
-    
-    .signup-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--accent-gold) 0%, #d89b3f 100%); color: #0f0f23; border: none; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
-    .signup-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(240, 173, 78, 0.3); }
-    .signup-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    
-    .form-message { padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; display: none; }
-    .form-message.success { background: rgba(5, 178, 108, 0.1); border: 1px solid rgba(5, 178, 108, 0.3); color: #05b26c; }
-    .form-message.error { background: rgba(246, 70, 93, 0.1); border: 1px solid rgba(246, 70, 93, 0.3); color: #f6465d; }
-    
-    .login-link { text-align: center; margin-top: 20px; }
-    .login-link a { color: var(--accent-gold); text-decoration: none; font-weight: 600; transition: all 0.3s; }
-    .login-link a:hover { color: #d89b3f; }
-    
-    .password-strength { font-size: 0.8rem; margin-top: 4px; padding: 6px; border-radius: 4px; display: none; }
-    .strength-weak { background: rgba(246, 70, 93, 0.1); color: #f6465d; }
-    .strength-fair { background: rgba(240, 173, 78, 0.1); color: #f0ad4e; }
-    .strength-good { background: rgba(5, 178, 108, 0.1); color: #05b26c; }
-    
-    @media (max-width: 768px) {
-      .signup-container { grid-template-columns: 1fr; gap: 30px; }
-      .signup-left { display: none; }
-      .signup-card { padding: 30px; }
-      .signup-header h1 { font-size: 2rem; }
+    .form-group label { display: block; color: #333; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .form-group input:disabled { opacity: 0.6; cursor: not-allowed; background: #f5f5f5; }
+    .form-group small { display: block; color: #999; font-size: 0.85rem; margin-top: 5px; }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+    }
+    .input-group input { flex: 1; }
+    .input-group button {
+      padding: 14px 24px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+      font-size: 0.9rem;
+    }
+    .input-group button:hover:not(:disabled) { background: #5568d3; transform: translateY(-1px); }
+    .input-group button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .message {
+      padding: 14px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      display: none;
+      text-align: center;
+    }
+    .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .message.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+
+    .divider {
+      text-align: center;
+      margin: 30px 0;
+      color: #999;
+      position: relative;
+    }
+    .divider::before,
+    .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background: #e0e0e0;
+    }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
+
+    .switch-link {
+      text-align: center;
+      margin-top: 25px;
+      color: #666;
+      font-size: 0.95rem;
+    }
+    .switch-link a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .switch-link a:hover { color: #5568d3; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 480px) {
+      .auth-container { padding: 40px 30px; }
+      h1 { font-size: 1.7rem; }
+      .input-group { flex-direction: column; }
+      .input-group button { width: 100%; }
     }
   </style>
 </head>
 <body>
-  <div class="signup-wrapper">
-    <div class="signup-container">
-      <!-- Left Side - Features -->
-      <div class="signup-left">
-        <div class="signup-header">
-          <h1>Join Today</h1>
-          <p>Create your account and start trading with realistic market data</p>
-        </div>
-        <ul class="signup-benefits">
-          <li>Practice with realistic market data</li>
-          <li>Test strategies risk-free</li>
-          <li>Real-time portfolio tracking</li>
-          <li>Advanced charting tools</li>
-          <li>Instant trade execution</li>
-        </ul>
-      </div>
+  <div class="auth-container">
+    <div class="logo">📊</div>
+    <h1>Create Account</h1>
+    <p class="subtitle">Start trading in minutes</p>
 
-      <!-- Right Side - Signup Form -->
-      <div class="signup-right">
-        <div class="signup-card">
-          <div class="signup-card-header">
-            <div class="signup-logo">📊</div>
-            <h2>Create Account</h2>
-            <p class="signup-card-subtitle">Start your investment journey</p>
-          </div>
+    <div class="message" id="message"></div>
 
-          <div class="form-message" id="form-message"></div>
-
-          <div class="form-group">
-            <label for="signup-name">Full Name</label>
-            <input type="text" id="signup-name" placeholder="John Doe" autocomplete="name">
-          </div>
-
-          <div class="form-group">
-            <label for="signup-email">Email Address</label>
-            <input type="email" id="signup-email" placeholder="your@email.com" autocomplete="email">
-          </div>
-
-          <div class="form-group">
-            <label for="signup-password">Password</label>
-            <input type="password" id="signup-password" placeholder="••••••••" autocomplete="new-password">
-            <div class="password-strength" id="password-strength"></div>
-          </div>
-
-          <div class="form-group">
-            <label for="signup-confirm">Confirm Password</label>
-            <input type="password" id="signup-confirm" placeholder="••••••••" autocomplete="new-password">
-          </div>
-
-          <button class="signup-btn" id="signup-btn">Create Account</button>
-
-          <div class="login-link">
-            Already have an account? <a href="login.html">Sign In</a>
-          </div>
+    <form id="signup-form">
+      <!-- Step 1: Email & Verification -->
+      <div class="form-group">
+        <label>Email Address</label>
+        <div class="input-group">
+          <input type="email" id="signup-email" placeholder="your@email.com" required autocomplete="email">
+          <button type="button" id="send-code-btn">Send Code</button>
         </div>
       </div>
+
+      <div class="form-group hidden" id="code-group">
+        <label>Verification Code</label>
+        <input type="text" id="verification-code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}">
+        <small>Check your email for the verification code</small>
+      </div>
+
+      <!-- Step 2: Account Details (shown after code verified) -->
+      <div id="details-section" class="hidden">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="signup-name" placeholder="John Doe" required autocomplete="name">
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="signup-password" placeholder="At least 6 characters" required autocomplete="new-password">
+        </div>
+
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <input type="password" id="signup-confirm" placeholder="Re-enter password" required autocomplete="new-password">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" id="signup-btn">Create Account</button>
+    </form>
+
+    <div class="divider">or</div>
+
+    <div class="switch-link">
+      Already have an account? <a href="login.html">Sign In</a>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/api-config.js"></script>
+  <script src="/js/api-config.js"></script>
   <script>
-    const messageEl = document.getElementById('form-message');
+    const messageDiv = document.getElementById('message');
+    const sendCodeBtn = document.getElementById('send-code-btn');
     const signupBtn = document.getElementById('signup-btn');
-    const passwordEl = document.getElementById('signup-password');
-    const strengthEl = document.getElementById('password-strength');
-    
-    // Password strength indicator
-    passwordEl.addEventListener('input', () => {
-      const password = passwordEl.value;
-      let strength = 'weak';
-      let strengthText = '❌ Too weak';
-      
-      if (password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password)) {
-        strength = 'good';
-        strengthText = '✅ Strong password';
-      } else if (password.length >= 6) {
-        strength = 'fair';
-        strengthText = '⚠️ Fair password';
-      }
-      
-      strengthEl.className = `password-strength strength-${strength}`;
-      strengthEl.innerText = strengthText;
-      strengthEl.style.display = 'block';
-    });
-    
-    function showMessage(msg, type = 'error') {
-      messageEl.className = `form-message ${type}`;
-      messageEl.innerText = msg;
-      messageEl.style.display = 'block';
+    const emailInput = document.getElementById('signup-email');
+    const codeInput = document.getElementById('verification-code');
+    const codeGroup = document.getElementById('code-group');
+    const detailsSection = document.getElementById('details-section');
+
+    let codeSent = false;
+    let codeVerified = false;
+    let userEmail = '';
+
+    function showMessage(text, type = 'info') {
+      messageDiv.textContent = text;
+      messageDiv.className = `message ${type}`;
+      messageDiv.style.display = 'block';
     }
-    
+
     function hideMessage() {
-      messageEl.style.display = 'none';
+      messageDiv.style.display = 'none';
     }
-    
-    signupBtn.addEventListener('click', async () => {
+
+    // Send verification code
+    sendCodeBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      
+      if (!email || !email.includes('@')) {
+        showMessage('Please enter a valid email address', 'error');
+        return;
+      }
+
+      userEmail = email;
+      sendCodeBtn.disabled = true;
+      sendCodeBtn.textContent = 'Sending...';
+      hideMessage();
+
+      try {
+        await API.post('/auth/send-verification-code', { email });
+        showMessage('✅ Verification code sent! Check your email.', 'success');
+        codeSent = true;
+        emailInput.disabled = true;
+        codeGroup.classList.remove('hidden');
+        codeInput.focus();
+        
+        // Cooldown
+        let seconds = 60;
+        sendCodeBtn.textContent = `Resend (${seconds}s)`;
+        const interval = setInterval(() => {
+          seconds--;
+          if (seconds > 0) {
+            sendCodeBtn.textContent = `Resend (${seconds}s)`;
+          } else {
+            clearInterval(interval);
+            sendCodeBtn.disabled = false;
+            sendCodeBtn.textContent = 'Resend Code';
+          }
+        }, 1000);
+      } catch (error) {
+        showMessage('❌ ' + (error.message || 'Failed to send code'), 'error');
+        sendCodeBtn.disabled = false;
+        sendCodeBtn.textContent = 'Send Code';
+      }
+    });
+
+    // Auto-verify code when 6 digits entered
+    codeInput.addEventListener('input', async (e) => {
+      const code = e.target.value.trim();
+      
+      if (code.length === 6 && !codeVerified) {
+        hideMessage();
+        codeInput.disabled = true;
+        
+        try {
+          await API.post('/auth/verify-code', { email: userEmail, code });
+          showMessage('✅ Code verified! Complete your registration below.', 'success');
+          codeVerified = true;
+          detailsSection.classList.remove('hidden');
+          document.getElementById('signup-name').focus();
+          signupBtn.textContent = 'Create Account & Sign In';
+        } catch (error) {
+          showMessage('❌ Invalid code. Please try again.', 'error');
+          codeInput.disabled = false;
+          codeInput.value = '';
+          codeInput.focus();
+        }
+      }
+    });
+
+    // Final signup
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideMessage();
+
+      if (!codeVerified) {
+        showMessage('Please verify your email first', 'error');
+        return;
+      }
+
       const name = document.getElementById('signup-name').value.trim();
-      const email = document.getElementById('signup-email').value.trim();
       const password = document.getElementById('signup-password').value;
       const confirm = document.getElementById('signup-confirm').value;
-      
-      // Validation
+      const code = codeInput.value.trim();
+
       if (!name) {
-        showMessage('❌ Please enter your full name');
+        showMessage('Please enter your full name', 'error');
         return;
       }
-      
-      if (!email) {
-        showMessage('❌ Please enter your email');
-        return;
-      }
-      
+
       if (password.length < 6) {
-        showMessage('❌ Password must be at least 6 characters');
+        showMessage('Password must be at least 6 characters', 'error');
         return;
       }
-      
+
       if (password !== confirm) {
-        showMessage('❌ Passwords do not match');
+        showMessage('Passwords do not match', 'error');
         return;
       }
-      
-      // Register user via API
+
       signupBtn.disabled = true;
-      signupBtn.innerText = 'Creating Account...';
-      
+      signupBtn.textContent = 'Creating Account...';
+
       try {
-        const response = await AuthAPI.register({ name, email, password });
-        
-        if (response.message && response.message.includes('verify')) {
-          showMessage('✅ Account created! Please check your email for verification code.', 'success');
-          setTimeout(() => {
-            window.location.href = 'verify-email.html';
-          }, 2000);
-        } else {
-          showMessage('✅ Account created! Redirecting...', 'success');
-          setTimeout(() => {
-            window.location.href = 'login.html';
-          }, 1500);
+        const response = await API.post('/auth/register', {
+          email: userEmail,
+          code,
+          name,
+          password
+        });
+
+        if (response.token) {
+          localStorage.setItem('authToken', response.token);
+          showMessage('✅ Account created! Redirecting to dashboard...', 'success');
+          setTimeout(() => window.location.href = '/index.html', 1500);
         }
       } catch (error) {
-        showMessage(`❌ ${error.message || 'Registration failed. Please try again.'}`);
+        showMessage('❌ ' + (error.message || 'Registration failed'), 'error');
         signupBtn.disabled = false;
-        signupBtn.innerText = 'Create Account';
+        signupBtn.textContent = 'Create Account & Sign In';
       }
-    });
-    
-    // Enter key to submit
-    document.getElementById('signup-confirm').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') signupBtn.click();
     });
   </script>
 </body>

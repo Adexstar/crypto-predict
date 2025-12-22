@@ -142,7 +142,7 @@ router.post('/:depositId/confirm', authenticate, async (req, res) => {
         action: 'confirm_deposit',
         targetId: deposit.userId,
         performedBy: req.user.email,
-        details: { depositId, amount: depositAmount }
+        details: JSON.stringify({ depositId, amount: depositAmount })
       }
     });
 
@@ -190,7 +190,7 @@ router.post('/:depositId/reject', authenticate, async (req, res) => {
         action: 'reject_deposit',
         targetId: deposit.userId,
         performedBy: req.user.email,
-        details: { depositId, reason }
+        details: JSON.stringify({ depositId, reason })
       }
     });
 

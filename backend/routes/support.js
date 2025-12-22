@@ -114,7 +114,7 @@ router.post('/:ticketId/reply', authenticate, async (req, res) => {
       where: { id: req.params.ticketId }
     });
 
-    const replies = ticket.replies || [];
+    const replies = ticket.replies ? JSON.parse(ticket.replies) : [];
     replies.push({
       message,
       author: req.user.email,
@@ -124,7 +124,7 @@ router.post('/:ticketId/reply', authenticate, async (req, res) => {
     const updatedTicket = await prisma.supportTicket.update({
       where: { id: req.params.ticketId },
       data: {
-        replies,
+        replies: JSON.stringify(replies),
         status: 'IN_PROGRESS'
       }
     });

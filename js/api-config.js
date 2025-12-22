@@ -2,12 +2,11 @@
 // This replaces localStorage with proper API calls
 
 const API_CONFIG = {
+    // Production Railway backend URL
+    PRODUCTION_URL: 'https://crypto-predict-production-0b73.up.railway.app',
+    
     // Local development
     LOCAL_URL: 'http://localhost:3000',
-    
-    // Production (Railway backend)
-    // Update this after Railway deployment
-    PRODUCTION_URL: 'https://crypto-predict-production-0b73.up.railway.app',
     
     // Auto-detect environment
     get BASE_URL() {
@@ -69,12 +68,25 @@ async function apiRequest(endpoint, options = {}) {
     
     try {
         const response = await fetch(url, config);
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error || data.message || 'Request failed');
+        const text = await response.text();
+        let data = {};
+        try {
+            data = text ? JSON.parse(text) : {};
+        } catch (e) {
+            data = { message: text };
         }
-        
+
+        if (!response.ok) {
+            // If validation errors exist, format them
+            if (Array.isArray(data.errors)) {
+                const msgs = data.errors.map(err => err.msg || err.message || JSON.stringify(err)).join('; ');
+                throw new Error(msgs || data.message || 'Request failed');
+            }
+
+            // Other structured errors
+            throw new Error(data.error || data.message || `Request failed (${response.status})`);
+        }
+
         return data;
     } catch (error) {
         console.error('API Request Error:', error);

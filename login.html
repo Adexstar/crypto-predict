@@ -1,240 +1,390 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - Investment Prediction</title>
-  <link rel="stylesheet" href="css/dashboard.css">
-  <link rel="stylesheet" href="css/style.css">
+  <title>Login - 24h Trading</title>
+  <link rel="stylesheet" href="/css/style.css">
   <style>
-    body { margin: 0; padding: 0; background: var(--bg-primary); }
-    .login-wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .login-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1200px; width: 100%; }
-    .login-left { display: flex; flex-direction: column; justify-content: center; }
-    .login-header h1 { color: var(--accent-gold); font-size: 2.5rem; margin: 0 0 15px; font-weight: 800; }
-    .login-header p { color: var(--text-secondary); font-size: 1.1rem; margin: 0 0 30px; line-height: 1.6; }
-    .login-benefits { list-style: none; padding: 0; margin: 30px 0; }
-    .login-benefits li { color: var(--text-secondary); margin: 15px 0; padding-left: 30px; position: relative; }
-    .login-benefits li:before { content: "✓"; position: absolute; left: 0; color: var(--accent-gold); font-weight: bold; font-size: 1.2rem; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     
-    .login-right { display: flex; align-items: center; }
-    .login-card { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px; width: 100%; box-shadow: var(--shadow-lg); }
-    .login-card-header { text-align: center; margin-bottom: 30px; }
-    .login-logo { font-size: 3rem; margin-bottom: 15px; }
-    .login-card h2 { color: var(--text-primary); font-size: 1.8rem; margin: 0 0 10px; }
-    .login-card-subtitle { color: var(--text-secondary); font-size: 0.9rem; }
-    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 440px;
+      padding: 50px 40px;
+    }
+
+    .logo { text-align: center; font-size: 3.5rem; margin-bottom: 10px; }
+    h1 { text-align: center; color: #1a1a2e; font-size: 2rem; margin-bottom: 8px; }
+    .subtitle { text-align: center; color: #666; font-size: 0.95rem; margin-bottom: 35px; }
+
     .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; color: var(--text-secondary); font-weight: 500; margin-bottom: 8px; font-size: 0.9rem; }
-    .form-group input { width: 100%; padding: 12px 15px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem; transition: all 0.3s; font-family: inherit; }
-    .form-group input:focus { outline: none; background: rgba(255,255,255,0.1); border-color: var(--accent-gold); }
-    .form-group input::placeholder { color: var(--text-muted); }
-    
-    .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--accent-gold) 0%, #d89b3f 100%); color: #0f0f23; border: none; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
-    .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(240, 173, 78, 0.3); }
-    
-    .demo-section { margin-top: 25px; padding-top: 25px; border-top: 1px solid var(--border-color); }
-    .demo-label { color: var(--text-secondary); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: block; }
-    .demo-user { background: rgba(56, 97, 251, 0.1); border: 1px solid rgba(56, 97, 251, 0.2); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--accent-primary); cursor: pointer; transition: all 0.2s; }
-    .demo-user:hover { background: rgba(56, 97, 251, 0.2); border-color: rgba(56, 97, 251, 0.4); }
-    .demo-user span { color: var(--text-secondary); }
-    
-    .sandbox-indicator { background: linear-gradient(135deg, rgba(240, 173, 78, 0.15) 0%, rgba(56, 97, 251, 0.15) 100%); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 20px; }
-    .sandbox-indicator-text { color: var(--accent-gold); font-size: 0.85rem; font-weight: 600; }
-    
-    .form-message { padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; display: none; }
-    .form-message.success { background: rgba(5, 178, 108, 0.1); border: 1px solid rgba(5, 178, 108, 0.3); color: #05b26c; }
-    .form-message.error { background: rgba(246, 70, 93, 0.1); border: 1px solid rgba(246, 70, 93, 0.3); color: #f6465d; }
-    
-    @media (max-width: 768px) {
-      .login-container { grid-template-columns: 1fr; gap: 30px; }
-      .login-left { display: none; }
-      .login-card { padding: 30px; }
-      .login-header h1 { font-size: 2rem; }
+    .form-group label { display: block; color: #333; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+    }
+    .input-group input { flex: 1; }
+    .input-group button {
+      padding: 14px 24px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+      font-size: 0.9rem;
+    }
+    .input-group button:hover:not(:disabled) { background: #5568d3; transform: translateY(-1px); }
+    .input-group button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .message {
+      padding: 14px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      display: none;
+      text-align: center;
+    }
+    .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .message.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+
+    .links {
+      display: flex;
+      justify-content: space-between;
+      margin: 20px 0;
+      font-size: 0.9rem;
+    }
+    .links a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+    .links a:hover { color: #5568d3; }
+
+    .divider {
+      text-align: center;
+      margin: 30px 0;
+      color: #999;
+      position: relative;
+    }
+    .divider::before,
+    .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background: #e0e0e0;
+    }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
+
+    .switch-link {
+      text-align: center;
+      margin-top: 25px;
+      color: #666;
+      font-size: 0.95rem;
+    }
+    .switch-link a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .switch-link a:hover { color: #5568d3; }
+
+    .hidden { display: none; }
+
+    @media (max-width: 480px) {
+      .auth-container { padding: 40px 30px; }
+      h1 { font-size: 1.7rem; }
     }
   </style>
 </head>
 <body>
-  <div class="login-wrapper">
-    <div class="login-container">
-      <!-- Left Side - Features -->
-      <div class="login-left">
-        <div class="login-header">
-          <h1>Investment Prediction</h1>
-          <p>Professional Trading cryptocurrency Strategies</p>
-        </div>
-        <ul class="login-benefits">
-          <li>Practice with realistic market data</li>
-          <li>Test strategies risk-free</li>
-          <li>Real-time portfolio tracking</li>
-          <li>Advanced charting tools</li>
-          <li>Instant trade execution</li>
-        </ul>
+  <div class="auth-container">
+    <div class="logo">📊</div>
+    <h1 id="page-title">Welcome Back</h1>
+    <p class="subtitle" id="page-subtitle">Sign in to continue trading</p>
+
+    <div class="message" id="message"></div>
+
+    <!-- LOGIN FORM -->
+    <form id="login-form">
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="login-email" placeholder="your@email.com" required autocomplete="email">
       </div>
 
-      <!-- Right Side - Login Form -->
-      <div class="login-right">
-        <div class="login-card">
-          <div class="login-card-header">
-            <div class="login-logo">📊</div>
-            <h2>Sign In</h2>
-            <p class="login-card-subtitle">Access your trading account</p>
-          </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="Enter your password" required autocomplete="current-password">
+      </div>
 
-          <div class="sandbox-indicator">
-            <div class="sandbox-indicator-text">🔬 Login here</div>
-          </div>
+      <div class="links">
+        <a id="show-forgot">Forgot Password?</a>
+      </div>
 
-          <div class="form-message" id="form-message"></div>
+      <button type="submit" class="btn-primary" id="login-btn">Sign In</button>
+    </form>
 
-          <div class="form-group">
-            <label for="login-email">Email Address</label>
-            <input type="email" id="login-email" placeholder="user@example.com" autocomplete="email">
-          </div>
-
-          <div class="form-group">
-            <label for="login-password">Password</label>
-            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
-          </div>
-
-          <button class="login-btn" id="login-btn">Sign In to Account</button>
-
-          <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.9rem;">
-            Don't have an account? <a href="signup.html" style="color: var(--accent-gold); text-decoration: none; font-weight: 600;">Create one</a>
-          </div>
+    <!-- FORGOT PASSWORD FORM -->
+    <form id="forgot-form" class="hidden">
+      <div class="form-group">
+        <label>Email Address</label>
+        <div class="input-group">
+          <input type="email" id="forgot-email" placeholder="your@email.com" required>
+          <button type="button" id="send-reset-btn">Send Code</button>
         </div>
       </div>
+
+      <div class="form-group hidden" id="reset-code-group">
+        <label>Reset Code</label>
+        <input type="text" id="reset-code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}">
+      </div>
+
+      <div class="form-group hidden" id="new-password-group">
+        <label>New Password</label>
+        <input type="password" id="new-password" placeholder="Enter new password" minlength="6">
+      </div>
+
+      <div class="form-group hidden" id="confirm-password-group">
+        <label>Confirm Password</label>
+        <input type="password" id="confirm-password" placeholder="Confirm new password">
+      </div>
+
+      <button type="submit" class="btn-primary hidden" id="reset-btn">Reset Password</button>
+      
+      <div class="links">
+        <a id="back-to-login">← Back to Login</a>
+      </div>
+    </form>
+
+    <div class="divider">or</div>
+
+    <div class="switch-link">
+      Don't have an account? <a href="signup.html">Create Account</a>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/api-config.js"></script>
+  <script src="/js/api-config.js"></script>
   <script>
-    // Define elements globally so onclick handlers can access them
-    let emailEl = null;
-    let passwordEl = null;
-    let loginBtn = null;
-    let messageEl = null;
-    
-    window.autofill = function(email) {
-      if (emailEl) emailEl.value = email;
-      if (passwordEl) passwordEl.value = 'Demo123!';
-    };
-    
-    function showMessage(msg, type = 'error') {
-      if (messageEl) {
-        messageEl.className = `form-message ${type}`;
-        messageEl.innerText = msg;
-        messageEl.style.display = 'block';
-      }
+    const loginForm = document.getElementById('login-form');
+    const forgotForm = document.getElementById('forgot-form');
+    const messageDiv = document.getElementById('message');
+    const pageTitle = document.getElementById('page-title');
+    const pageSubtitle = document.getElementById('page-subtitle');
+
+    // Show/hide functions
+    function showMessage(text, type = 'info') {
+      messageDiv.textContent = text;
+      messageDiv.className = `message ${type}`;
+      messageDiv.style.display = 'block';
     }
-    
+
     function hideMessage() {
-      if (messageEl) {
-        messageEl.style.display = 'none';
-      }
+      messageDiv.style.display = 'none';
     }
-    
-    async function handleLogin() {
-      console.log('handleLogin called');
-      if (!emailEl || !passwordEl) {
-        console.error('Form elements not available');
-        return;
-      }
-      
-      const email = emailEl.value.trim();
-      const password = passwordEl.value;
-      
-      console.log('Email:', email, 'Password length:', password.length);
-      
-      if (!email) {
-        showMessage('❌ Please enter your email');
-        return;
-      }
-      
-      if (!password) {
-        showMessage('❌ Please enter your password');
-        return;
-      }
-      
-      loginBtn.disabled = true;
-      loginBtn.innerText = 'Signing in...';
+
+    // Switch to forgot password
+    document.getElementById('show-forgot').addEventListener('click', (e) => {
+      e.preventDefault();
+      loginForm.classList.add('hidden');
+      forgotForm.classList.remove('hidden');
+      pageTitle.textContent = 'Reset Password';
+      pageSubtitle.textContent = 'Enter your email to receive a reset code';
       hideMessage();
-      
+    });
+
+    // Back to login
+    document.getElementById('back-to-login').addEventListener('click', (e) => {
+      e.preventDefault();
+      forgotForm.classList.add('hidden');
+      loginForm.classList.remove('hidden');
+      pageTitle.textContent = 'Welcome Back';
+      pageSubtitle.textContent = 'Sign in to continue trading';
+      document.getElementById('reset-code-group').classList.add('hidden');
+      document.getElementById('new-password-group').classList.add('hidden');
+      document.getElementById('confirm-password-group').classList.add('hidden');
+      document.getElementById('reset-btn').classList.add('hidden');
+      hideMessage();
+    });
+
+    // LOGIN
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideMessage();
+
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      if (!email || !password) {
+        showMessage('Please enter both email and password', 'error');
+        return;
+      }
+
+      const loginBtn = document.getElementById('login-btn');
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in...';
+
       try {
-        const response = await AuthAPI.login({ email, password });
+        const response = await API.post('/auth/login', { email, password });
         
         if (response.requiresVerification) {
-          showMessage('⚠️ Please verify your email first. Redirecting...', 'error');
-          setTimeout(() => {
-            window.location.href = 'verify-email.html';
-          }, 1500);
+          showMessage('Please verify your email first. Check your inbox for the verification code.', 'error');
+          setTimeout(() => window.location.href = 'signup.html', 2000);
           return;
         }
-        
-        showMessage('✅ Login successful! Redirecting...', 'success');
-        console.log('Redirecting to index.html');
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 500);
+
+        if (response.token) {
+          localStorage.setItem('authToken', response.token);
+          showMessage('Login successful! Redirecting...', 'success');
+          setTimeout(() => window.location.href = '/index.html', 1500);
+        }
       } catch (error) {
-        showMessage(`❌ ${error.message || 'Login failed. Please try again.'}`);
+        showMessage(error.message || 'Login failed. Please check your credentials.', 'error');
         loginBtn.disabled = false;
-        loginBtn.innerText = 'Sign In to Account';
-        passwordEl.value = '';
+        loginBtn.textContent = 'Sign In';
       }
-    }
-    
-    function initLoginPage() {
-      console.log('initLoginPage called at readyState:', document.readyState);
-      messageEl = document.getElementById('form-message');
-      loginBtn = document.getElementById('login-btn');
-      emailEl = document.getElementById('login-email');
-      passwordEl = document.getElementById('login-password');
+    });
+
+    // SEND RESET CODE
+    document.getElementById('send-reset-btn').addEventListener('click', async () => {
+      const email = document.getElementById('forgot-email').value.trim();
       
-      console.log('Elements found - loginBtn:', !!loginBtn, 'emailEl:', !!emailEl, 'passwordEl:', !!passwordEl);
-      
-      if (!loginBtn || !emailEl || !passwordEl) {
-        console.error('Login elements not found!');
+      if (!email || !email.includes('@')) {
+        showMessage('Please enter a valid email address', 'error');
         return;
       }
-      
-      // Attach click handler
-      if (!loginBtn) {
-        console.error('loginBtn is null after init!');
-      } else {
-        console.log('loginBtn found, attaching listener');
-        loginBtn.addEventListener('click', handleLogin);
+
+      const sendBtn = document.getElementById('send-reset-btn');
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Sending...';
+      hideMessage();
+
+      try {
+        await API.post('/auth/forgot-password', { email });
+        showMessage('Reset code sent! Check your email.', 'success');
+        document.getElementById('forgot-email').disabled = true;
+        document.getElementById('reset-code-group').classList.remove('hidden');
+        document.getElementById('new-password-group').classList.remove('hidden');
+        document.getElementById('confirm-password-group').classList.remove('hidden');
+        document.getElementById('reset-btn').classList.remove('hidden');
+        
+        // Cooldown
+        let seconds = 60;
+        const interval = setInterval(() => {
+          seconds--;
+          if (seconds > 0) {
+            sendBtn.textContent = `Resend (${seconds}s)`;
+          } else {
+            clearInterval(interval);
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Resend Code';
+          }
+        }, 1000);
+      } catch (error) {
+        showMessage(error.message || 'Failed to send reset code', 'error');
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Send Code';
+      }
+    });
+
+    // RESET PASSWORD
+    document.getElementById('forgot-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideMessage();
+
+      const email = document.getElementById('forgot-email').value.trim();
+      const code = document.getElementById('reset-code').value.trim();
+      const newPassword = document.getElementById('new-password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+
+      if (code.length !== 6) {
+        showMessage('Please enter the 6-digit code', 'error');
+        return;
       }
 
-      if (emailEl) {
-        emailEl.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            handleLogin();
-          }
-        });
+      if (newPassword.length < 6) {
+        showMessage('Password must be at least 6 characters', 'error');
+        return;
       }
 
-      if (passwordEl) {
-        passwordEl.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            handleLogin();
-          }
-        });
+      if (newPassword !== confirmPassword) {
+        showMessage('Passwords do not match', 'error');
+        return;
       }
-    }
-    
-    // Wait for DOM to be ready
-    if (document.readyState === 'loading') {
-      console.log('DOM still loading, waiting for DOMContentLoaded');
-      document.addEventListener('DOMContentLoaded', initLoginPage);
-    } else {
-      console.log('DOM already ready, initializing immediately');
-      initLoginPage();
-    }
-    console.log('Login script module loaded');
+
+      const resetBtn = document.getElementById('reset-btn');
+      resetBtn.disabled = true;
+      resetBtn.textContent = 'Resetting...';
+
+      try {
+        await API.post('/auth/reset-password', { email, code, newPassword });
+        showMessage('Password reset successful! Redirecting to login...', 'success');
+        
+        setTimeout(() => {
+          document.getElementById('back-to-login').click();
+          document.getElementById('login-email').value = email;
+        }, 2000);
+      } catch (error) {
+        showMessage(error.message || 'Failed to reset password', 'error');
+        resetBtn.disabled = false;
+        resetBtn.textContent = 'Reset Password';
+      }
+    });
   </script>
 </body>
 </html>

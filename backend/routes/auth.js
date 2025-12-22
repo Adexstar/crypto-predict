@@ -9,12 +9,10 @@ import { generateVerificationCode, sendVerificationEmail, sendPasswordResetEmail
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Register
-router.post('/register',
+// Send verification code (before registration)
+router.post('/send-verification-code',
   [
     body('email').isEmail().normalizeEmail(),
-    body('password').isLength({ min: 6 }),
-    body('name').optional().trim(),
   ],
   async (req, res) => {
     try {
@@ -23,31 +21,147 @@ router.post('/register',
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const { email, password, name } = req.body;
+      const { email } = req.body;
 
-      // Check if user exists
+      // Check if email already exists
       const existing = await prisma.user.findUnique({ where: { email } });
       if (existing) {
         return res.status(400).json({ error: 'Email already registered' });
       }
 
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Generate verification code
+      // Generate and store verification code temporarily
       const verificationCode = generateVerificationCode();
       const verificationCodeExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-      // Create user
-      const user = await prisma.user.create({
-        data: {
+      // Store code in a temporary table or use a cache (for now, we'll create a pending user record)
+      // Since we don't have a temp table, we'll create the user with a flag
+      const tempUser = await prisma.user.upsert({
+        where: { email },
+        update: {
+          verificationCode,
+          verificationCodeExpires,
+        },
+        create: {
           email,
-          password: hashedPassword,
-          name: name || email.split('@')[0],
+          password: '', // Empty password for now
+          name: email.split('@')[0],
           role: 'USER',
           emailVerified: false,
           verificationCode,
           verificationCodeExpires,
+          pendingRegistration: true, // Flag to indicate incomplete registration
+        }
+      });
+
+      // Send verification email
+      await sendVerificationEmail(email, verificationCode, email.split('@')[0]);
+
+      res.json({
+        message: 'Verification code sent to your email',
+        email,
+      });
+    } catch (error) {
+      console.error('Send verification code error:', error);
+      res.status(500).json({ error: 'Failed to send verification code' });
+    }
+  }
+);
+
+// Verify code only (before final registration)
+router.post('/verify-code',
+  [
+    body('email').isEmail().normalizeEmail(),
+    body('code').isLength({ min: 6, max: 6 }),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { email, code } = req.body;
+
+      // Find user
+      const user = await prisma.user.findUnique({ where: { email } });
+
+      if (!user) {
+        return res.status(404).json({ error: 'No verification code found for this email' });
+      }
+
+      // Verify the code
+      if (user.verificationCode !== code) {
+        return res.status(400).json({ error: 'Invalid verification code' });
+      }
+
+      // Check code expiration
+      if (!user.verificationCodeExpires || new Date() > user.verificationCodeExpires) {
+        return res.status(400).json({ error: 'Verification code expired. Please request a new one.' });
+      }
+
+      res.json({
+        message: 'Code verified successfully',
+        email,
+      });
+    } catch (error) {
+      console.error('Verify code error:', error);
+      res.status(500).json({ error: 'Verification failed' });
+    }
+  }
+);
+
+// Register
+router.post('/register',
+  [
+    body('email').isEmail().normalizeEmail(),
+    body('password').isLength({ min: 6 }),
+    body('name').optional().trim(),
+    body('code').isLength({ min: 6, max: 6 }),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { email, password, name, code } = req.body;
+
+      // Check if user exists and get verification code
+      const existing = await prisma.user.findUnique({ where: { email } });
+      
+      if (!existing) {
+        return res.status(400).json({ error: 'Please request a verification code first' });
+      }
+
+      // If user has a real password (not empty), they're already registered
+      if (existing.password && existing.password.length > 10) {
+        return res.status(400).json({ error: 'Email already registered' });
+      }
+
+      // Verify the code
+      if (existing.verificationCode !== code) {
+        return res.status(400).json({ error: 'Invalid verification code' });
+      }
+
+      // Check code expiration
+      if (!existing.verificationCodeExpires || new Date() > existing.verificationCodeExpires) {
+        return res.status(400).json({ error: 'Verification code expired. Please request a new one.' });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Update user with complete registration
+      const user = await prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          password: hashedPassword,
+          name: name || email.split('@')[0],
+          emailVerified: true, // Verified immediately since they used the code
+          verificationCode: null,
+          verificationCodeExpires: null,
+          pendingRegistration: false,
           history: {
             create: createHistoryEntry('account.created', { email })
           }
@@ -58,15 +172,17 @@ router.post('/register',
           name: true,
           role: true,
           balance: true,
+          spotBalance: true,
+          futuresBalance: true,
+          optionsBalance: true,
+          kyc: true,
+          vip: true,
           emailVerified: true,
           createdAt: true,
         }
       });
 
-      // Send verification email
-      await sendVerificationEmail(email, verificationCode, user.name);
-
-      // Generate token
+      // Generate token and auto-login
       const token = jwt.sign(
         { userId: user.id, email: user.email, role: user.role },
         process.env.JWT_SECRET,
@@ -76,8 +192,7 @@ router.post('/register',
       res.status(201).json({
         user,
         token,
-        message: 'Account created successfully. Please check your email for verification code.',
-        requiresVerification: true
+        message: 'Account created and verified successfully!'
       });
     } catch (error) {
       console.error('Register error:', error);
@@ -119,6 +234,14 @@ router.post('/login',
       // Check if frozen
       if (user.frozen) {
         return res.status(403).json({ error: 'Account is frozen. Contact support.' });
+      }
+
+      // Check if email is verified
+      if (!user.emailVerified) {
+        return res.status(403).json({ 
+          error: 'Please verify your email first',
+          requiresVerification: true 
+        });
       }
 
       // Update last login

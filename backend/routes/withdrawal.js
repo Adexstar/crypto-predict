@@ -151,7 +151,7 @@ router.post('/:withdrawalId/approve', authenticate, async (req, res) => {
         action: 'approve_withdrawal',
         targetId: withdrawal.userId,
         performedBy: req.user.email,
-        details: { withdrawalId, amount: withdrawal.amount }
+        details: JSON.stringify({ withdrawalId, amount: withdrawal.amount })
       }
     });
 
@@ -198,7 +198,7 @@ router.post('/:withdrawalId/reject', authenticate, async (req, res) => {
         action: 'reject_withdrawal',
         targetId: withdrawal.userId,
         performedBy: req.user.email,
-        details: { withdrawalId, reason }
+        details: JSON.stringify({ withdrawalId, reason })
       }
     });
 
