@@ -7,7 +7,7 @@ cmds = ["cd backend && npm install --production"]
 [phases.build]
 cmds = [
   "cd backend && npx prisma generate",
-  "cd backend && npx prisma db push --accept-data-loss --skip-generate"
+  "cd backend && npx prisma migrate deploy"
 ]
 
 [start]
