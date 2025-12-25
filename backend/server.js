@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import { initializeDatabase } from './utils/initDb.js';
+import { getEmailStatus } from './utils/email.js';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -101,6 +102,10 @@ app.use((err, req, res, next) => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🔗 Frontend: ${process.env.FRONTEND_URL || 'not configured'}`);
+      
+      // Log email configuration status
+      const emailStatus = getEmailStatus();
+      console.log(`📧 Email Service: ${emailStatus.configured ? '✅ CONFIGURED (' + emailStatus.service + ')' : '❌ NOT CONFIGURED'}`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error.message);

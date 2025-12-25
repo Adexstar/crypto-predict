@@ -666,6 +666,34 @@ router.get('/admin-status', async (req, res) => {
   });
 });
 
+// Email configuration status
+router.get('/email-status', async (req, res) => {
+  const hasEmailService = !!process.env.EMAIL_SERVICE;
+  const hasEmailUser = !!process.env.EMAIL_USER;
+  const hasEmailPassword = !!process.env.EMAIL_PASSWORD;
+  const emailServiceValue = process.env.EMAIL_SERVICE || 'NOT SET';
+  const allConfigured = hasEmailService && hasEmailUser && hasEmailPassword;
+
+  console.log('📧 Email Configuration Check:');
+  console.log(`   EMAIL_SERVICE configured: ${hasEmailService ? '✅' : '❌'} (${emailServiceValue})`);
+  console.log(`   EMAIL_USER configured: ${hasEmailUser ? '✅' : '❌'}`);
+  console.log(`   EMAIL_PASSWORD configured: ${hasEmailPassword ? '✅' : '❌'}`);
+  console.log(`   All configured: ${allConfigured ? '✅' : '❌'}`);
+
+  res.json({
+    emailConfigured: allConfigured,
+    details: {
+      emailService: hasEmailService ? `Configured (${emailServiceValue})` : 'MISSING ❌',
+      emailUser: hasEmailUser ? 'Configured' : 'MISSING ❌',
+      emailPassword: hasEmailPassword ? 'Configured' : 'MISSING ❌'
+    },
+    message: allConfigured 
+      ? `Email service properly configured with ${emailServiceValue} ✅`
+      : 'Some email configuration is missing. Check Railway environment variables ❌',
+    instructions: 'See EMAIL_SETUP.md for configuration instructions'
+  });
+});
+
 router.post('/admin-login',
   [
     body('email').isEmail().normalizeEmail(),

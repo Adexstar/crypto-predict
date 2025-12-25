@@ -19,8 +19,13 @@ function initializeEmailService() {
   }
   
   try {
+    console.log(`📧 Initializing email service: ${emailService}`);
+    
     // Support both Gmail and custom SMTP
     if (emailService.toLowerCase() === 'gmail' || emailService.toLowerCase() === 'sendgrid') {
+      console.log(`   Service type: ${emailService.toLowerCase()}`);
+      console.log(`   User: ${emailUser}`);
+      
       transporter = nodemailer.createTransport({
         service: emailService,
         auth: {
@@ -39,8 +44,25 @@ function initializeEmailService() {
         secure: true,
         requireTLS: true
       });
+      
+      // Test the connection
+      transporter.verify((error, success) => {
+        if (error) {
+          console.error(`❌ Email transporter verification failed: ${error.message}`);
+          if (emailService.toLowerCase() === 'gmail') {
+            console.error('   💡 For Gmail, use App Password not your regular password');
+            console.error('   💡 Enable 2-Step Verification: https://myaccount.google.com/security');
+            console.error('   💡 Generate App Password: https://myaccount.google.com/apppasswords');
+          }
+        } else {
+          console.log('✅ Email transporter verified and ready');
+          emailConfigured = true;
+        }
+      });
     } else if (emailService.toLowerCase() === 'custom' || process.env.SMTP_HOST) {
       // Custom SMTP server configuration
+      console.log(`   Custom SMTP: ${process.env.SMTP_HOST}:${process.env.SMTP_PORT || 587}`);
+      
       transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT || 587,
@@ -68,6 +90,21 @@ function initializeEmailService() {
 
 // Initialize on module load
 initializeEmailService();
+
+// Export function to check if email is configured
+export function isEmailConfigured() {
+  return emailConfigured;
+}
+
+// Export function to get email status
+export function getEmailStatus() {
+  return {
+    configured: emailConfigured,
+    service: process.env.EMAIL_SERVICE || 'NOT SET',
+    hasUser: !!process.env.EMAIL_USER,
+    hasPassword: !!process.env.EMAIL_PASSWORD
+  };
+}
 
 // Generate 6-digit verification code
 export function generateVerificationCode() {
