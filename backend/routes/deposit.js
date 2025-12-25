@@ -79,18 +79,32 @@ router.get('/pending', authenticate, async (req, res) => {
 
   try {
     console.log('✅ Admin verified, fetching deposits...');
+    // Query only columns that exist in the current database schema
     const deposits = await prisma.deposit.findMany({
-      where: { status: 'PENDING' },
-      include: {
-        user: {
-          select: { id: true, email: true, name: true }
-        }
+      where: { status: 'pending' },
+      select: {
+        id: true,
+        userId: true,
+        amount: true,
+        createdAt: true,
+        status: true,
       },
       orderBy: { createdAt: 'desc' }
     });
 
-    console.log(`✅ Found ${deposits.length} pending deposits`);
-    res.json({ deposits });
+    // Enhance with user data
+    const enhancedDeposits = await Promise.all(
+      deposits.map(async (dep) => {
+        const user = await prisma.user.findUnique({
+          where: { id: dep.userId },
+          select: { id: true, email: true, name: true }
+        });
+        return { ...dep, user };
+      })
+    );
+
+    console.log(`✅ Found ${enhancedDeposits.length} pending deposits`);
+    res.json({ deposits: enhancedDeposits });
   } catch (error) {
     console.error('❌ Pending deposits DB error:', error.message);
     console.error('   Full error:', error);

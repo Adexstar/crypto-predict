@@ -91,18 +91,32 @@ router.get('/pending', authenticate, async (req, res) => {
 
   try {
     console.log('✅ Admin verified, fetching withdrawals...');
+    // Query only columns that exist in the current database schema
     const withdrawals = await prisma.withdrawal.findMany({
       where: { status: 'PENDING' },
-      include: {
-        user: {
-          select: { id: true, email: true, name: true, balance: true }
-        }
+      select: {
+        id: true,
+        userId: true,
+        amount: true,
+        status: true,
+        createdAt: true,
       },
       orderBy: { createdAt: 'desc' }
     });
 
-    console.log(`✅ Found ${withdrawals.length} pending withdrawals`);
-    res.json({ withdrawals });
+    // Enhance with user data
+    const enhancedWithdrawals = await Promise.all(
+      withdrawals.map(async (wd) => {
+        const user = await prisma.user.findUnique({
+          where: { id: wd.userId },
+          select: { id: true, email: true, name: true, balance: true }
+        });
+        return { ...wd, user };
+      })
+    );
+
+    console.log(`✅ Found ${enhancedWithdrawals.length} pending withdrawals`);
+    res.json({ withdrawals: enhancedWithdrawals });
   } catch (error) {
     console.error('❌ Pending withdrawals DB error:', error.message);
     console.error('   Full error:', error);
