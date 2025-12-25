@@ -92,11 +92,13 @@
   </main>
 
   <script type="module">
-    import { getCurrentUser } from './js/userData.js';
+    import { getRealUser } from './js/user-context.js';
 
-    function initPage() {
-      const user = getCurrentUser();
-      if (!user) {
+    let currentUser = null;
+
+    async function initPage() {
+      currentUser = await getRealUser();
+      if (!currentUser) {
         window.location.href = 'login.html';
         return;
       }

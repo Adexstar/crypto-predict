@@ -40,14 +40,26 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="js/api-config.js"></script>
   <script type="module">
-    import { state, getCurrentUser } from './js/userData.js';
+    import { getRealUser } from './js/user-context.js';
+
+    let currentUser = null;
+
+    async function loadUser() {
+      currentUser = await getRealUser();
+      if (!currentUser) {
+        window.location.href = 'login.html';
+        return;
+      }
+      renderHeader();
+      renderHistory();
+    }
 
     function renderHeader() {
-      const user = getCurrentUser();
+      if (!currentUser) return;
       document.getElementById('app-header').innerHTML = `
         <div class="brand"><div class="logo">FX</div><div>
           <div style="font-weight:800">Transaction History</div>
-          <div class="small">User: ${user.name}</div>
+          <div class="small">User: ${currentUser.name}</div>
         </div></div>
         <div class="nav">
           <span class="badge-sim">HISTORY</span>
@@ -55,10 +67,10 @@
     }
 
     function renderHistory(filter = '') {
-      const user = getCurrentUser();
+      if (!currentUser) return;
       const list = document.getElementById('history-list');
       
-      let history = user.history || [];
+      let history = currentUser.history || [];
       if (filter) {
         history = history.filter(h => h.action.includes(filter));
       }
@@ -91,8 +103,7 @@
       renderHistory(e.target.value);
     });
 
-    renderHeader();
-    renderHistory();
+    loadUser();
     
     // Check authentication
     (async () => {

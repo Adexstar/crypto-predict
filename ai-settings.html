@@ -113,14 +113,26 @@
   </main>
 
   <script type="module">
-    import { state, getCurrentUser, addHistory, saveState } from './js/userData.js';
+    import { getRealUser } from './js/user-context.js';
+
+    let currentUser = null;
+
+    async function loadUser() {
+      currentUser = await getRealUser();
+      if (!currentUser) {
+        window.location.href = '/login.html';
+        return;
+      }
+      renderHeader();
+      loadAISettings();
+    }
 
     function renderHeader() {
-      const user = getCurrentUser();
+      if (!currentUser) return;
       document.getElementById('app-header').innerHTML = `
         <div class="brand"><div class="logo">FX</div><div>
           <div style="font-weight:800">AI Quant Settings</div>
-          <div class="small">User: ${user.name}</div>
+          <div class="small">User: ${currentUser.name}</div>
         </div></div>
         <div class="nav">
           <span class="badge-sim">AI MODE</span>
@@ -128,13 +140,13 @@
     }
 
     function loadAISettings() {
-      const user = getCurrentUser();
+      if (!currentUser) return;
       
       // Check if user has active AI subscription
-      if (user.aiSubscription && user.aiSubscription.active) {
+      if (currentUser.aiSubscription && currentUser.aiSubscription.active) {
         document.getElementById('bot-status').innerHTML = '● ACTIVE';
         document.getElementById('bot-status').style.color = '#0b9d58';
-        document.getElementById('sub-amount').textContent = '$' + (user.aiSubscription.amount || 0).toLocaleString();
+        document.getElementById('sub-amount').textContent = '$' + (currentUser.aiSubscription.amount || 0).toLocaleString();
       } else {
         document.getElementById('bot-status').innerHTML = '○ INACTIVE';
         document.getElementById('bot-status').style.color = '#d03030';
@@ -142,25 +154,25 @@
       }
 
       // Load saved settings
-      if (user.aiSettings) {
-        document.getElementById('strategy').value = user.aiSettings.strategy || 'moderate';
-        document.getElementById('position-size').value = user.aiSettings.positionSize || 5;
-        document.getElementById('stop-loss').value = user.aiSettings.stopLoss || 3;
-        document.getElementById('take-profit').value = user.aiSettings.takeProfit || 6;
+      if (currentUser.aiSettings) {
+        document.getElementById('strategy').value = currentUser.aiSettings.strategy || 'moderate';
+        document.getElementById('position-size').value = currentUser.aiSettings.positionSize || 5;
+        document.getElementById('stop-loss').value = currentUser.aiSettings.stopLoss || 3;
+        document.getElementById('take-profit').value = currentUser.aiSettings.takeProfit || 6;
         
-        updatePositionDisplay(user.aiSettings.positionSize || 5);
-        updateStopLossDisplay(user.aiSettings.stopLoss || 3);
-        updateTakeProfitDisplay(user.aiSettings.takeProfit || 6);
+        updatePositionDisplay(currentUser.aiSettings.positionSize || 5);
+        updateStopLossDisplay(currentUser.aiSettings.stopLoss || 3);
+        updateTakeProfitDisplay(currentUser.aiSettings.takeProfit || 6);
       }
 
       renderPerformanceHistory();
     }
 
     function renderPerformanceHistory() {
-      const user = getCurrentUser();
+      if (!currentUser) return;
       const container = document.getElementById('performance-history');
       
-      const aiHistory = (user.history || []).filter(h => h.action.includes('ai.'));
+      const aiHistory = (currentUser.history || []).filter(h => h.action.includes('ai.'));
       
       if (aiHistory.length === 0) {
         container.innerHTML = '<p class="small" style="color:#666">No performance data yet. Subscribe to start tracking.</p>';
@@ -202,11 +214,11 @@
 
     window.subscribeAIBot = function() {
       const amt = Number(document.getElementById('ai-sub-amt').value || 0);
-      const user = getCurrentUser();
+      if (!currentUser) return;
       const msg = document.getElementById('ai-msg');
 
       // Save settings
-      user.aiSettings = {
+      currentUser.aiSettings = {
         strategy: document.getElementById('strategy').value,
         positionSize: Number(document.getElementById('position-size').value),
         stopLoss: Number(document.getElementById('stop-loss').value),
@@ -218,24 +230,21 @@
         return;
       }
 
-      if (amt > user.balance) {
+      if (amt > currentUser.balance) {
         msg.innerHTML = '<span style="color:#d03030">❌ Insufficient balance. Please deposit funds first.</span>';
         return;
       }
 
       // Deduct subscription amount
-      user.balance -= amt;
+      currentUser.balance -= amt;
 
       // Activate subscription
-      user.aiSubscription = {
+      currentUser.aiSubscription = {
         active: true,
         amount: amt,
         startDate: new Date().toISOString(),
-        settings: user.aiSettings
+        settings: currentUser.aiSettings
       };
-
-      addHistory(user.id, 'ai.subscribe', { amount: amt });
-      saveState(state);
 
       msg.innerHTML = '<span style="color:#0b9d58">✅ AI Bot activated! Subscription: $' + amt.toFixed(2) + '. Profit cycle will execute in 5 seconds...</span>';
       document.getElementById('subscribe-btn').disabled = true;
@@ -244,9 +253,7 @@
       // Execute profit cycle after 5 seconds
       setTimeout(() => {
         const profit = amt * 0.0015; // 0.15% return
-        user.balance += profit;
-        addHistory(user.id, 'ai.profit', { profit: profit, subscription: amt });
-        saveState(state);
+        currentUser.balance += profit;
         
         msg.innerHTML = '<span style="color:#0b9d58">✅ First profit cycle completed! Earned: $' + profit.toFixed(2) + '</span>';
         document.getElementById('subscribe-btn').disabled = false;
@@ -256,8 +263,7 @@
       }, 5000);
     };
 
-    renderHeader();
-    loadAISettings();
+    loadUser();
   </script>
 </body>
 </html>
