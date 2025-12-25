@@ -231,19 +231,19 @@
     
     <script src="js/api-config.js"></script>
     <script type="module">
-        import { getCurrentUser } from './js/userData.js';
+        import { getRealUser, ensureAuthenticated } from './js/user-context.js';
         
         let STORAGE_KEY;
+        let currentUser;
         
         // Load settings on page load
-        function loadSettings() {
-            const user = getCurrentUser();
-            if (!user) {
-                window.location.href = 'login.html';
+        async function loadSettings() {
+            currentUser = await ensureAuthenticated();
+            if (!currentUser) {
                 return;
             }
             
-            STORAGE_KEY = 'platformSettings_' + user.id;
+            STORAGE_KEY = 'platformSettings_' + currentUser.id;
             const settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
             
             document.getElementById('darkMode').checked = settings.darkMode !== false;
