@@ -23,8 +23,21 @@
           window.location.href = 'login.html';
           return;
         }
+        console.log('✅ User authenticated:', userData);
         // User is authenticated, load dashboard module
-        const dashboardModule = await import('./js/dashboard.js');
+        try {
+          const dashboardModule = await import('./js/dashboard.js');
+          console.log('✅ Dashboard loaded successfully');
+        } catch (dashboardError) {
+          console.error('❌ Failed to load dashboard:', dashboardError);
+          document.body.innerHTML = `
+            <div style="padding: 40px; text-align: center; background: #1a1a2e; color: #fff; min-height: 100vh;">
+              <h1>⚠️ Dashboard Error</h1>
+              <p>${dashboardError.message}</p>
+              <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">Retry</button>
+            </div>
+          `;
+        }
       } catch (error) {
         console.error('Auth check failed:', error);
         window.location.href = 'login.html';

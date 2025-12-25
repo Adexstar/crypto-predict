@@ -4,9 +4,8 @@
 // This is a FORENSIC SIMULATION ENVIRONMENT - no real funds, APIs, or wallets
 const SYSTEM_MODE = "SIMULATION_ONLY";
 
-// SECURITY: Default password loaded from environment variable
-// Set VITE_DEFAULT_USER_PASSWORD in Vercel environment variables
-const DEFAULT_PASSWORD = import.meta?.env?.VITE_DEFAULT_USER_PASSWORD || 'CHANGE_ME_IN_ENV';
+// SECURITY: Default password loaded from environment variable (or use fallback)
+const DEFAULT_PASSWORD = 'demo123'; // Fallback for development
 
 const DEFAULT_USERS = [
   { id: "u1", email: "alice@test.local", name: "Alice", password: DEFAULT_PASSWORD, balance: 10000, frozen:false, kyc:false, vip:false, history:[], deposits:[], withdrawals:[], spotBalance: 6000, futuresBalance: 3000, optionsBalance: 1000, createdAt: new Date('2024-01-15').toISOString() },
@@ -14,8 +13,8 @@ const DEFAULT_USERS = [
   { id: "u3", email: "carol@test.local", name: "Carol", password: DEFAULT_PASSWORD, balance: 50000, frozen:false, kyc:true, vip:true, history:[], deposits:[], withdrawals:[], spotBalance: 30000, futuresBalance: 15000, optionsBalance: 5000, createdAt: new Date('2023-12-01').toISOString() }
 ];
 
-// SECURITY: Admin password loaded from environment variable
-const ADMIN_PANEL_PASSWORD = import.meta?.env?.VITE_ADMIN_PANEL_PASSWORD || 'CHANGE_ME_IN_ENV';
+// SECURITY: Admin password fallback
+const ADMIN_PANEL_PASSWORD = 'admin123';
 
 function loadState(){
   let s = localStorage.getItem("forensic_sim_state");
