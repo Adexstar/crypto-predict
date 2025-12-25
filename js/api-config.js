@@ -189,12 +189,14 @@ const DepositAPI = {
     },
     
     async getMyDeposits() {
-        return await API.get('/deposits');
+        const response = await API.get('/deposits');
+        return response.deposits || [];
     },
     
     // Admin only
     async getPending() {
-        return await API.get('/deposits/pending');
+        const response = await API.get('/deposits/pending');
+        return response.deposits || [];
     },
     
     async confirm(depositId, amount) {
@@ -213,12 +215,14 @@ const WithdrawalAPI = {
     },
     
     async getMyWithdrawals() {
-        return await API.get('/withdrawals');
+        const response = await API.get('/withdrawals');
+        return response.withdrawals || [];
     },
     
     // Admin only
     async getPending() {
-        return await API.get('/withdrawals/pending');
+        const response = await API.get('/withdrawals/pending');
+        return response.withdrawals || [];
     },
     
     async approve(withdrawalId) {
@@ -233,11 +237,13 @@ const WithdrawalAPI = {
 // Admin API calls
 const AdminAPI = {
     async getUsers() {
-        return await API.get('/admin/users');
+        const response = await API.get('/admin/users');
+        return response.users || [];
     },
     
     async getUser(userId) {
-        return await API.get(`/admin/users/${userId}`);
+        const response = await API.get(`/admin/users/${userId}`);
+        return response.user || response;
     },
     
     async setBalance(userId, balance) {
@@ -257,11 +263,13 @@ const AdminAPI = {
     },
     
     async getAnalytics() {
-        return await API.get('/admin/analytics');
+        const response = await API.get('/admin/analytics');
+        return response.analytics || response;
     },
     
     async getAuditLogs(limit = 100, skip = 0) {
-        return await API.get('/admin/audit-logs', { limit, skip });
+        const response = await API.get('/admin/audit-logs', { limit, skip });
+        return response.logs || [];
     }
 };
 
