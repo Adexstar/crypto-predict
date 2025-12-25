@@ -12,6 +12,20 @@ export const authenticate = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Check if it's an admin token
+    if (decoded.adminId === 'system_admin' && decoded.role === 'ADMIN') {
+      req.user = {
+        id: 'system_admin',
+        email: decoded.email,
+        name: 'Administrator',
+        role: 'ADMIN',
+        isAdmin: true
+      };
+      return next();
+    }
+    
+    // Otherwise, it's a regular user token
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {
