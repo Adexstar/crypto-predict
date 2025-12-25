@@ -77,7 +77,7 @@
           // Call mount function to render the dashboard
           if (typeof window.mount === 'function') {
             console.log('🎨 Rendering dashboard UI...');
-            window.mount();
+            await window.mount();
             // Start refresh engine
             if (window.dashboardRefresh) {
               window.dashboardRefresh.start();

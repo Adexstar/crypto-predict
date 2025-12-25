@@ -1,7 +1,32 @@
-import { state, getCurrentUser, setCurrentUser, addHistory, subscribeAI, requestWithdrawal, saveState } from './userData.js';
 import { renderCandle } from './charts.js';
 
 function $(id) { return document.getElementById(id); }
+
+// Real user data from API (not simulation)
+let currentUser = null;
+
+// Fetch real user data from backend
+async function loadUserData() {
+  try {
+    const response = await AuthAPI.verify();
+    currentUser = response.user || response;
+    return currentUser;
+  } catch (error) {
+    console.error('Failed to load user data:', error);
+    window.location.href = '/login.html';
+  }
+}
+
+function getCurrentUser() {
+  return currentUser;
+}
+
+// Stub functions for simulation features (to be implemented with real API)
+function addHistory() { /* TODO: Call history API */ }
+function saveState() { /* Handled by backend */ }
+function subscribeAI() { /* TODO: Call AI subscription API */ }
+function requestWithdrawal() { /* TODO: Call withdrawal API */ }
+
 
 // ==================== AUTO-REFRESH ENGINE ====================
 class DashboardRefresh {
@@ -413,7 +438,10 @@ function renderHeader() {
 }
 
 // ==================== MAIN DASHBOARD MOUNT ====================
-function mount() {
+async function mount() {
+  // Load real user data first
+  await loadUserData();
+  
   renderHeader();
 
   $('app-main').innerHTML = `
@@ -769,5 +797,3 @@ window.ProfitCycle = simulateProfitCycle;
 window.showToast = showToast;
 window.updateAllWidgets = updateAllWidgets;
 window.getCurrentUser = getCurrentUser;
-window.addHistory = addHistory;
-window.saveState = saveState;
