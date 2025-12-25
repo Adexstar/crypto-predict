@@ -17,7 +17,8 @@
     // Check authentication before loading dashboard
     (async () => {
       try {
-        const userData = await AuthAPI.verify();
+        const response = await AuthAPI.verify();
+        const userData = response.user || response;
         if (!userData || !userData.id) {
           window.location.href = 'login.html';
           return;
