@@ -624,4 +624,61 @@ router.post('/change-password',
   }
 );
 
+// Admin login (secure backend authentication)
+router.post('/admin-login',
+  [
+    body('email').isEmail().normalizeEmail(),
+    body('password').notEmpty(),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { email, password } = req.body;
+
+      // Check if admin credentials are configured in environment
+      const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+      const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+      if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+        return res.status(503).json({ error: 'Admin authentication not configured on server' });
+      }
+
+      // Verify credentials
+      if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+        // Log failed attempt for security
+        console.warn(`Failed admin login attempt from IP: ${req.ip}`);
+        return res.status(401).json({ error: 'Invalid admin credentials' });
+      }
+
+      // Generate admin token
+      const token = jwt.sign(
+        { 
+          email: ADMIN_EMAIL, 
+          role: 'ADMIN',
+          adminId: 'system_admin'
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      // Log successful admin login
+      console.log(`Successful admin login at ${new Date().toISOString()}`);
+
+      res.json({
+        email: ADMIN_EMAIL,
+        token,
+        role: 'ADMIN',
+        message: 'Admin authentication successful'
+      });
+    } catch (error) {
+      console.error('Admin login error:', error);
+      res.status(500).json({ error: 'Admin authentication failed' });
+    }
+  }
+);
+
 export default router;
