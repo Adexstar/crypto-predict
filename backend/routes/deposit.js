@@ -68,7 +68,9 @@ router.get('/', async (req, res) => {
 
 // Admin: Get all pending deposits
 router.get('/pending', authenticate, async (req, res) => {
+  console.log('Pending deposits request - User:', req.user);
   if (req.user.role !== 'ADMIN') {
+    console.log('Access denied - not admin:', req.user.role);
     return res.status(403).json({ error: 'Admin access required' });
   }
 

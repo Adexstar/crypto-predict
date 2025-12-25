@@ -22,6 +22,7 @@ export const authenticate = async (req, res, next) => {
         role: 'ADMIN',
         isAdmin: true
       };
+      console.log('Admin authenticated:', req.user);
       return next();
     }
     
