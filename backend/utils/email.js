@@ -9,6 +9,14 @@ if (process.env.EMAIL_SERVICE && process.env.EMAIL_USER && process.env.EMAIL_PAS
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD
+    },
+    connectionTimeout: 10000, // 10 seconds
+    socketTimeout: 10000,     // 10 seconds
+    pool: {
+      maxConnections: 5,
+      maxMessages: 100,
+      rateDelta: 1000,
+      rateLimit: 10
     }
   });
   
@@ -124,16 +132,28 @@ export async function sendVerificationEmail(email, code, name = 'User') {
     `
   };
 
-  // If email service is configured, send email
+  // If email service is configured, send email with retries
   if (transporter) {
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log(`✅ Verification email sent to ${email}`);
-      return true;
-    } catch (error) {
-      console.error('❌ Failed to send email:', error.message);
-      // Fall through to console logging
+    let lastError;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        console.log(`📤 Sending verification email to ${email} (attempt ${attempt}/3)...`);
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Verification email sent to ${email}`);
+        return true;
+      } catch (error) {
+        lastError = error;
+        console.error(`❌ Email send attempt ${attempt} failed:`, error.message);
+        if (attempt < 3) {
+          // Wait before retrying (exponential backoff: 1s, 2s)
+          const delayMs = 1000 * attempt;
+          console.log(`⏳ Retrying in ${delayMs}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      }
     }
+    console.error('❌ Failed to send email after 3 attempts:', lastError?.message);
+    // Fall through to console logging
   }
   
   // Fallback: Log to console (for development)
