@@ -640,6 +640,32 @@ router.post('/change-password',
 );
 
 // Admin login (secure backend authentication)
+// Health check endpoint to verify admin credentials are configured
+router.get('/admin-status', async (req, res) => {
+  const hasAdminEmail = !!process.env.ADMIN_EMAIL;
+  const hasAdminPassword = !!process.env.ADMIN_PASSWORD;
+  const hasJWTSecret = !!process.env.JWT_SECRET;
+  const allConfigured = hasAdminEmail && hasAdminPassword && hasJWTSecret;
+
+  console.log('🔍 Admin Configuration Check:');
+  console.log(`   ADMIN_EMAIL configured: ${hasAdminEmail ? '✅' : '❌'}`);
+  console.log(`   ADMIN_PASSWORD configured: ${hasAdminPassword ? '✅' : '❌'}`);
+  console.log(`   JWT_SECRET configured: ${hasJWTSecret ? '✅' : '❌'}`);
+  console.log(`   All configured: ${allConfigured ? '✅' : '❌'}`);
+
+  res.json({
+    adminConfigured: allConfigured,
+    details: {
+      adminEmail: hasAdminEmail ? 'Configured' : 'MISSING ❌',
+      adminPassword: hasAdminPassword ? 'Configured' : 'MISSING ❌',
+      jwtSecret: hasJWTSecret ? 'Configured' : 'MISSING ❌'
+    },
+    message: allConfigured 
+      ? 'Admin credentials are properly configured ✅'
+      : 'Some admin credentials are missing. Check Railway environment variables ❌'
+  });
+});
+
 router.post('/admin-login',
   [
     body('email').isEmail().normalizeEmail(),
