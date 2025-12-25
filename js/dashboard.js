@@ -732,7 +732,26 @@ function showToast(msg) {
 
 // ==================== INITIALIZE ====================
 window.addEventListener('load', () => {
-  mount();
+  try {
+    console.log('📊 Mounting dashboard...');
+    mount();
+    console.log('✅ Dashboard mounted successfully');
+    dashboardRefresh.start();
+    updateAllWidgets();
+  } catch (error) {
+    console.error('❌ Failed to mount dashboard:', error);
+    document.body.innerHTML = `
+      <div style="padding: 40px; text-align: center; background: #1a1a2e; color: #fff; min-height: 100vh;">
+        <h1>⚠️ Dashboard Mount Error</h1>
+        <p>${error.message}</p>
+        <details style="text-align: left; margin-top: 20px; background: rgba(255,107,107,0.1); padding: 15px; border-radius: 8px;">
+          <summary style="cursor: pointer; color: #ff6b6b;">Stack Trace</summary>
+          <pre style="margin-top: 10px; overflow-x: auto; font-size: 0.8rem;">${error.stack}</pre>
+        </details>
+        <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">Retry</button>
+      </div>
+    `;
+  }
 });
 
 // Export for global use
