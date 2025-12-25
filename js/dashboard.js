@@ -731,6 +731,10 @@ function showToast(msg) {
 }
 
 // ==================== INITIALIZE ====================
+// Export mount function for dynamic loading
+window.mount = mount;
+
+// Also trigger on load event for traditional page loads
 window.addEventListener('load', () => {
   try {
     console.log('📊 Mounting dashboard...');

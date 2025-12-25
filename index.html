@@ -67,7 +67,26 @@
           console.log('📦 Loading dashboard module...');
           const dashboardModule = await import('./js/dashboard.js');
           console.log('✅ Dashboard loaded successfully');
-          // Dashboard should be rendered by now
+          
+          // Call mount function to render the dashboard
+          if (typeof window.mount === 'function') {
+            console.log('🎨 Rendering dashboard UI...');
+            window.mount();
+            // Start refresh engine
+            if (window.dashboardRefresh) {
+              window.dashboardRefresh.start();
+            }
+            // Initial widget update
+            if (typeof window.updateAllWidgets === 'function') {
+              window.updateAllWidgets();
+            }
+            console.log('✅ Dashboard rendered successfully');
+          } else {
+            showErrorUI(
+              'Dashboard mount function not found',
+              'The mount() function was not exported properly from dashboard.js'
+            );
+          }
         } catch (dashboardError) {
           console.error('❌ Failed to load dashboard:', dashboardError);
           showErrorUI(
