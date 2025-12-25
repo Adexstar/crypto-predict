@@ -10,17 +10,20 @@ if (process.env.EMAIL_SERVICE && process.env.EMAIL_USER && process.env.EMAIL_PAS
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD
     },
-    connectionTimeout: 10000, // 10 seconds
-    socketTimeout: 10000,     // 10 seconds
+    connectionTimeout: 30000, // 30 seconds - increased for reliability
+    socketTimeout: 30000,     // 30 seconds
+    greetingTimeout: 30000,   // Timeout for SMTP greeting
     pool: {
-      maxConnections: 5,
-      maxMessages: 100,
+      maxConnections: 3,      // Reduced from 5
+      maxMessages: 50,        // Reduced from 100
       rateDelta: 1000,
-      rateLimit: 10
-    }
+      rateLimit: 5            // Reduced from 10
+    },
+    secure: true,             // Use TLS
+    requireTLS: true          // Require TLS for Gmail
   });
   
-  console.log('✅ Email service configured');
+  console.log('✅ Email service configured with improved timeout settings');
 } else {
   console.warn('⚠️ Email service not configured - verification emails will be logged to console');
 }
@@ -145,8 +148,8 @@ export async function sendVerificationEmail(email, code, name = 'User') {
         lastError = error;
         console.error(`❌ Email send attempt ${attempt} failed:`, error.message);
         if (attempt < 3) {
-          // Wait before retrying (exponential backoff: 1s, 2s)
-          const delayMs = 1000 * attempt;
+          // Wait before retrying (exponential backoff: 2s, 4s)
+          const delayMs = 2000 * attempt;
           console.log(`⏳ Retrying in ${delayMs}ms...`);
           await new Promise(resolve => setTimeout(resolve, delayMs));
         }
@@ -273,13 +276,26 @@ export async function sendPasswordResetEmail(email, code, name = 'User') {
 
   // If email service is configured, send email
   if (transporter) {
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log(`✅ Password reset email sent to ${email}`);
-      return true;
-    } catch (error) {
-      console.error('❌ Failed to send email:', error.message);
+    let lastError;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        console.log(`📤 Sending password reset email to ${email} (attempt ${attempt}/3)...`);
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Password reset email sent to ${email}`);
+        return true;
+      } catch (error) {
+        lastError = error;
+        console.error(`❌ Email send attempt ${attempt} failed:`, error.message);
+        if (attempt < 3) {
+          // Wait before retrying (exponential backoff: 2s, 4s)
+          const delayMs = 2000 * attempt;
+          console.log(`⏳ Retrying in ${delayMs}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      }
     }
+    console.error('❌ Failed to send email after 3 attempts:', lastError?.message);
+    // Fall through to console logging
   }
   
   // Fallback: Log to console
