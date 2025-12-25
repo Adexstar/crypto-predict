@@ -295,6 +295,21 @@ router.get('/verify', async (req, res) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Check if it's an admin token
+    if (decoded.adminId === 'system_admin' && decoded.role === 'ADMIN') {
+      return res.json({ 
+        user: {
+          id: 'system_admin',
+          email: decoded.email,
+          role: 'ADMIN',
+          name: 'Administrator'
+        },
+        valid: true 
+      });
+    }
+    
+    // Otherwise, it's a regular user token
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {
