@@ -68,13 +68,17 @@ router.get('/', async (req, res) => {
 
 // Admin: Get all pending deposits
 router.get('/pending', authenticate, async (req, res) => {
-  console.log('Pending deposits request - User:', req.user);
-  if (req.user.role !== 'ADMIN') {
-    console.log('Access denied - not admin:', req.user.role);
+  console.log('📍 Pending deposits request');
+  console.log('   User:', JSON.stringify(req.user));
+  console.log('   Role check:', req.user?.role, '===', 'ADMIN', '?', req.user?.role === 'ADMIN');
+  
+  if (req.user?.role !== 'ADMIN') {
+    console.log('❌ Access denied - not admin. Role:', req.user?.role);
     return res.status(403).json({ error: 'Admin access required' });
   }
 
   try {
+    console.log('✅ Admin verified, fetching deposits...');
     const deposits = await prisma.deposit.findMany({
       where: { status: 'PENDING' },
       include: {
@@ -85,10 +89,12 @@ router.get('/pending', authenticate, async (req, res) => {
       orderBy: { createdAt: 'desc' }
     });
 
+    console.log(`✅ Found ${deposits.length} pending deposits`);
     res.json({ deposits });
   } catch (error) {
-    console.error('Pending deposits error:', error);
-    res.status(500).json({ error: 'Failed to fetch pending deposits' });
+    console.error('❌ Pending deposits DB error:', error.message);
+    console.error('   Full error:', error);
+    res.status(500).json({ error: 'Failed to fetch pending deposits', details: error.message });
   }
 });
 

@@ -80,13 +80,17 @@ router.get('/', async (req, res) => {
 
 // Admin: Get all pending withdrawals
 router.get('/pending', authenticate, async (req, res) => {
-  console.log('Pending withdrawals request - User:', req.user);
-  if (req.user.role !== 'ADMIN') {
-    console.log('Access denied - not admin:', req.user.role);
+  console.log('📍 Pending withdrawals request');
+  console.log('   User:', JSON.stringify(req.user));
+  console.log('   Role check:', req.user?.role, '===', 'ADMIN', '?', req.user?.role === 'ADMIN');
+  
+  if (req.user?.role !== 'ADMIN') {
+    console.log('❌ Access denied - not admin. Role:', req.user?.role);
     return res.status(403).json({ error: 'Admin access required' });
   }
 
   try {
+    console.log('✅ Admin verified, fetching withdrawals...');
     const withdrawals = await prisma.withdrawal.findMany({
       where: { status: 'PENDING' },
       include: {
@@ -97,10 +101,12 @@ router.get('/pending', authenticate, async (req, res) => {
       orderBy: { createdAt: 'desc' }
     });
 
+    console.log(`✅ Found ${withdrawals.length} pending withdrawals`);
     res.json({ withdrawals });
   } catch (error) {
-    console.error('Pending withdrawals error:', error);
-    res.status(500).json({ error: 'Failed to fetch pending withdrawals' });
+    console.error('❌ Pending withdrawals DB error:', error.message);
+    console.error('   Full error:', error);
+    res.status(500).json({ error: 'Failed to fetch pending withdrawals', details: error.message });
   }
 });
 
