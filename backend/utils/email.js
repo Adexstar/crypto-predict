@@ -2,31 +2,72 @@ import nodemailer from 'nodemailer';
 
 // Email transporter configuration
 let transporter;
+let emailConfigured = false;
 
-if (process.env.EMAIL_SERVICE && process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-  transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
-    },
-    connectionTimeout: 30000, // 30 seconds - increased for reliability
-    socketTimeout: 30000,     // 30 seconds
-    greetingTimeout: 30000,   // Timeout for SMTP greeting
-    pool: {
-      maxConnections: 3,      // Reduced from 5
-      maxMessages: 50,        // Reduced from 100
-      rateDelta: 1000,
-      rateLimit: 5            // Reduced from 10
-    },
-    secure: true,             // Use TLS
-    requireTLS: true          // Require TLS for Gmail
-  });
+// Initialize email service
+function initializeEmailService() {
+  const emailService = process.env.EMAIL_SERVICE;
+  const emailUser = process.env.EMAIL_USER;
+  const emailPassword = process.env.EMAIL_PASSWORD;
   
-  console.log('✅ Email service configured with improved timeout settings');
-} else {
-  console.warn('⚠️ Email service not configured - verification emails will be logged to console');
+  if (!emailService || !emailUser || !emailPassword) {
+    console.warn('⚠️  EMAIL SERVICE NOT CONFIGURED');
+    console.warn('   Missing environment variables: EMAIL_SERVICE, EMAIL_USER, EMAIL_PASSWORD');
+    console.warn('   Emails will be logged to console (DEV MODE)');
+    console.warn('   See EMAIL_SETUP.md for configuration instructions');
+    return;
+  }
+  
+  try {
+    // Support both Gmail and custom SMTP
+    if (emailService.toLowerCase() === 'gmail' || emailService.toLowerCase() === 'sendgrid') {
+      transporter = nodemailer.createTransport({
+        service: emailService,
+        auth: {
+          user: emailUser,
+          pass: emailPassword
+        },
+        connectionTimeout: 30000,
+        socketTimeout: 30000,
+        greetingTimeout: 30000,
+        pool: {
+          maxConnections: 3,
+          maxMessages: 50,
+          rateDelta: 1000,
+          rateLimit: 5
+        },
+        secure: true,
+        requireTLS: true
+      });
+    } else if (emailService.toLowerCase() === 'custom' || process.env.SMTP_HOST) {
+      // Custom SMTP server configuration
+      transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT || 587,
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+          user: process.env.SMTP_USER || emailUser,
+          pass: process.env.SMTP_PASS || emailPassword
+        },
+        connectionTimeout: 30000,
+        socketTimeout: 30000,
+        greetingTimeout: 30000
+      });
+    } else {
+      console.warn(`⚠️  Unknown EMAIL_SERVICE: ${emailService}`);
+      console.warn('   Supported: gmail, sendgrid, or set SMTP_HOST for custom SMTP');
+      return;
+    }
+    
+    emailConfigured = true;
+    console.log(`✅ Email service configured: ${emailService}`);
+  } catch (error) {
+    console.error('❌ Failed to initialize email service:', error.message);
+  }
 }
+
+// Initialize on module load
+initializeEmailService();
 
 // Generate 6-digit verification code
 export function generateVerificationCode() {
@@ -136,7 +177,7 @@ export async function sendVerificationEmail(email, code, name = 'User') {
   };
 
   // If email service is configured, send email with retries
-  if (transporter) {
+  if (emailConfigured && transporter) {
     let lastError;
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
@@ -146,17 +187,15 @@ export async function sendVerificationEmail(email, code, name = 'User') {
         return true;
       } catch (error) {
         lastError = error;
-        console.error(`❌ Email send attempt ${attempt} failed:`, error.message);
+        console.error(`❌ Email send attempt ${attempt} failed: ${error.message}`);
         if (attempt < 3) {
-          // Wait before retrying (exponential backoff: 2s, 4s)
           const delayMs = 2000 * attempt;
           console.log(`⏳ Retrying in ${delayMs}ms...`);
           await new Promise(resolve => setTimeout(resolve, delayMs));
         }
       }
     }
-    console.error('❌ Failed to send email after 3 attempts:', lastError?.message);
-    // Fall through to console logging
+    console.error(`❌ Failed to send verification email after 3 attempts: ${lastError?.message}`);
   }
   
   // Fallback: Log to console (for development)
@@ -275,7 +314,7 @@ export async function sendPasswordResetEmail(email, code, name = 'User') {
   };
 
   // If email service is configured, send email
-  if (transporter) {
+  if (emailConfigured && transporter) {
     let lastError;
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
@@ -285,17 +324,15 @@ export async function sendPasswordResetEmail(email, code, name = 'User') {
         return true;
       } catch (error) {
         lastError = error;
-        console.error(`❌ Email send attempt ${attempt} failed:`, error.message);
+        console.error(`❌ Email send attempt ${attempt} failed: ${error.message}`);
         if (attempt < 3) {
-          // Wait before retrying (exponential backoff: 2s, 4s)
           const delayMs = 2000 * attempt;
           console.log(`⏳ Retrying in ${delayMs}ms...`);
           await new Promise(resolve => setTimeout(resolve, delayMs));
         }
       }
     }
-    console.error('❌ Failed to send email after 3 attempts:', lastError?.message);
-    // Fall through to console logging
+    console.error(`❌ Failed to send password reset email after 3 attempts: ${lastError?.message}`);
   }
   
   // Fallback: Log to console
