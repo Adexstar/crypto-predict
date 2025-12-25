@@ -14,35 +14,41 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="js/api-config.js"></script>
   <script>
-    // Create fallback UI
+    // Create fallback UI (don't replace body, just show in main)
     function showLoadingUI() {
-      document.body.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #1a1a2e; color: white;">
-          <div style="text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 20px;">⚙️</div>
-            <h1>Loading Dashboard...</h1>
-            <p style="color: #aaa; margin-top: 10px;">Initializing your trading platform</p>
+      const main = document.getElementById('app-main');
+      if (main) {
+        main.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #1a1a2e; color: white;">
+            <div style="text-align: center;">
+              <div style="font-size: 3rem; margin-bottom: 20px;">⚙️</div>
+              <h1>Loading Dashboard...</h1>
+              <p style="color: #aaa; margin-top: 10px;">Initializing your trading platform</p>
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      }
     }
 
     function showErrorUI(message, details) {
-      document.body.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #1a1a2e; color: white;">
-          <div style="text-align: center; max-width: 500px; padding: 40px;">
-            <div style="font-size: 3rem; margin-bottom: 20px;">❌</div>
-            <h1>Dashboard Error</h1>
-            <p style="color: #ff6b6b; margin-top: 10px; word-break: break-word;">${message}</p>
-            <details style="margin-top: 20px; text-align: left; background: rgba(255,107,107,0.1); padding: 15px; border-radius: 8px;">
-              <summary style="cursor: pointer; color: #ff6b6b;">Technical Details</summary>
-              <pre style="margin-top: 10px; overflow-x: auto; font-size: 0.8rem; color: #aaa;">${details}</pre>
-            </details>
-            <button onclick="location.reload()" style="margin-top: 20px; padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem;">Retry</button>
-            <button onclick="window.location.href='/login.html'" style="margin-top: 10px; margin-left: 10px; padding: 12px 24px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem;">Back to Login</button>
+      const main = document.getElementById('app-main');
+      if (main) {
+        main.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #1a1a2e; color: white;">
+            <div style="text-align: center; max-width: 500px; padding: 40px;">
+              <div style="font-size: 3rem; margin-bottom: 20px;">❌</div>
+              <h1>Dashboard Error</h1>
+              <p style="color: #ff6b6b; margin-top: 10px; word-break: break-word;">${message}</p>
+              <details style="margin-top: 20px; text-align: left; background: rgba(255,107,107,0.1); padding: 15px; border-radius: 8px;">
+                <summary style="cursor: pointer; color: #ff6b6b;">Technical Details</summary>
+                <pre style="margin-top: 10px; overflow-x: auto; font-size: 0.8rem; color: #aaa;">${details}</pre>
+              </details>
+              <button onclick="location.reload()" style="margin-top: 20px; padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem;">Retry</button>
+              <button onclick="window.location.href='/login.html'" style="margin-top: 10px; margin-left: 10px; padding: 12px 24px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem;">Back to Login</button>
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      }
     }
 
     // Show loading UI immediately
