@@ -1,30 +1,56 @@
 import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 
 // Email transporter configuration
 let transporter;
 let emailConfigured = false;
+let usingSendGrid = false;
 
 // Initialize email service
 function initializeEmailService() {
   const emailService = process.env.EMAIL_SERVICE;
   const emailUser = process.env.EMAIL_USER;
   const emailPassword = process.env.EMAIL_PASSWORD;
+  const sendgridApiKey = process.env.SENDGRID_API_KEY;
   
+  // Check for SendGrid API first (recommended for cloud deployments)
+  if (emailService === 'sendgrid-api' || sendgridApiKey) {
+    if (!sendgridApiKey) {
+      console.warn('⚠️  SendGrid API selected but SENDGRID_API_KEY is missing');
+      return;
+    }
+    
+    try {
+      sgMail.setApiKey(sendgridApiKey);
+      usingSendGrid = true;
+      emailConfigured = true;
+      console.log('✅ Email service configured: SendGrid API (recommended for cloud)');
+      return;
+    } catch (error) {
+      console.error('❌ Failed to initialize SendGrid:', error.message);
+      return;
+    }
+  }
+  
+  // Fall back to SMTP-based email services
   if (!emailService || !emailUser || !emailPassword) {
     console.warn('⚠️  EMAIL SERVICE NOT CONFIGURED');
-    console.warn('   Missing environment variables: EMAIL_SERVICE, EMAIL_USER, EMAIL_PASSWORD');
-    console.warn('   Emails will be logged to console (DEV MODE)');
-    console.warn('   See EMAIL_SETUP.md for configuration instructions');
+    console.warn('   For cloud deployments (Railway), use SendGrid API:');
+    console.warn('   - Set EMAIL_SERVICE=sendgrid-api');
+    console.warn('   - Set SENDGRID_API_KEY=your-api-key');
+    console.warn('   - Set EMAIL_FROM=verified@yourdomain.com');
+    console.warn('   See EMAIL_SETUP.md for detailed instructions');
     return;
   }
   
   try {
     console.log(`📧 Initializing email service: ${emailService}`);
     
-    // Support both Gmail and custom SMTP
+    // Support Gmail and other SMTP services
     if (emailService.toLowerCase() === 'gmail' || emailService.toLowerCase() === 'sendgrid') {
       console.log(`   Service type: ${emailService.toLowerCase()}`);
       console.log(`   User: ${emailUser}`);
+      console.warn('   ⚠️ SMTP may be blocked by cloud providers (use sendgrid-api instead)');
       
       transporter = nodemailer.createTransport({
         service: emailService,
@@ -54,6 +80,7 @@ function initializeEmailService() {
             console.error('   💡 Enable 2-Step Verification: https://myaccount.google.com/security');
             console.error('   💡 Generate App Password: https://myaccount.google.com/apppasswords');
           }
+          console.error('   💡 If on Railway/cloud, SMTP ports may be blocked. Use SendGrid API instead.');
         } else {
           console.log('✅ Email transporter verified and ready');
           emailConfigured = true;
@@ -77,7 +104,7 @@ function initializeEmailService() {
       });
     } else {
       console.warn(`⚠️  Unknown EMAIL_SERVICE: ${emailService}`);
-      console.warn('   Supported: gmail, sendgrid, or set SMTP_HOST for custom SMTP');
+      console.warn('   Supported: sendgrid-api (recommended), gmail, sendgrid, or set SMTP_HOST for custom SMTP');
       return;
     }
     
@@ -213,7 +240,22 @@ export async function sendVerificationEmail(email, code, name = 'User') {
     `
   };
 
-  // If email service is configured, send email with retries
+  // SendGrid API (recommended for cloud)
+  if (usingSendGrid && emailConfigured) {
+    try {
+      console.log(`📤 Sending verification email via SendGrid to ${email}...`);
+      await sgMail.send(mailOptions);
+      console.log(`✅ Verification email sent to ${email}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ SendGrid email failed: ${error.message}`);
+      if (error.response) {
+        console.error('   Response:', error.response.body);
+      }
+    }
+  }
+  
+  // SMTP-based email (may be blocked by cloud providers)
   if (emailConfigured && transporter) {
     let lastError;
     for (let attempt = 1; attempt <= 3; attempt++) {
@@ -350,7 +392,22 @@ export async function sendPasswordResetEmail(email, code, name = 'User') {
     `
   };
 
-  // If email service is configured, send email
+  // SendGrid API (recommended for cloud)
+  if (usingSendGrid && emailConfigured) {
+    try {
+      console.log(`📤 Sending password reset email via SendGrid to ${email}...`);
+      await sgMail.send(mailOptions);
+      console.log(`✅ Password reset email sent to ${email}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ SendGrid email failed: ${error.message}`);
+      if (error.response) {
+        console.error('   Response:', error.response.body);
+      }
+    }
+  }
+
+  // SMTP-based email (may be blocked by cloud providers)
   if (emailConfigured && transporter) {
     let lastError;
     for (let attempt = 1; attempt <= 3; attempt++) {

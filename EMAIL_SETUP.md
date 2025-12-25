@@ -1,12 +1,58 @@
 # Email Configuration Setup Guide
 
 ## Overview
-The application uses Nodemailer to send verification and password reset emails. Currently, emails are timing out because email service credentials are not configured in Railway.
+The application uses Nodemailer to send verification and password reset emails. 
+
+⚠️ **IMPORTANT**: Railway and many cloud providers block outbound SMTP connections (ports 587/465) for security. If you see "Connection timeout" errors even with correct Gmail credentials, **use SendGrid API instead** (Option 1 below).
 
 ## Setup Options
 
-### Option 1: Gmail (Recommended)
-Gmail is the easiest to set up and works reliably.
+### Option 1: SendGrid API (RECOMMENDED for Railway/Cloud)
+SendGrid uses HTTP API instead of SMTP, which works reliably in cloud environments.
+
+#### Steps:
+1. **Create SendGrid Account**
+   - Go to https://sendgrid.com
+   - Sign up for a free account (100 emails/day free tier)
+
+2. **Verify Sender Email**
+   - Go to Settings → Sender Authentication
+   - Click "Verify a Single Sender"
+   - Enter your email and verify it
+
+3. **Create API Key**
+   - Go to Settings → API Keys
+   - Click "Create API Key"
+   - Name: "Railway Production"
+   - Permissions: "Full Access" (or "Mail Send" only)
+   - Copy the key (shown only once!)
+
+4. **Configure Railway Environment Variables**
+   - Go to your Railway project dashboard
+   - Click on your Node.js service
+   - Go to "Variables" tab
+   - Add these variables:
+     ```
+     EMAIL_SERVICE=sendgrid-api
+     SENDGRID_API_KEY=your-api-key-from-step-3
+     EMAIL_FROM=verified-email@example.com
+     ```
+   - Replace `your-api-key-from-step-3` with the actual API key
+   - Replace `verified-email@example.com` with the email you verified in step 2
+
+5. **Redeploy**
+   - Go to "Deployments" tab
+   - Click "Redeploy" on the latest deployment
+   - Wait for deployment to complete (~2-5 minutes)
+
+6. **Test**
+   - Visit your app and try the password reset feature
+   - Check the Railway logs: should see `✅ Email sent successfully`
+
+---
+
+### Option 2: Gmail (Only if SMTP ports are NOT blocked)
+Gmail works but requires App Passwords and may be blocked by cloud providers.
 
 #### Steps:
 1. **Create a Google Account** (if you don't have one)
