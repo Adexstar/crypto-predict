@@ -154,24 +154,24 @@ function renderOrderBook() {
           <div>Price (USDT)</div>
           <div>Size (BTC)</div>
         </div>
-        ${book.asks.map(order => `
+        ${book.asks ? book.asks.map(order => `
           <div class="order-book-row">
-            <div class="order-book-price sell-price">$${order.price.toFixed(2)}</div>
-            <div class="order-book-size">${order.size.toFixed(3)}</div>
+            <div class="order-book-price sell-price">$${(order?.price || 0).toFixed(2)}</div>
+            <div class="order-book-size">${(order?.size || 0).toFixed(3)}</div>
           </div>
-        `).join('')}
+        `).join('') : '<div style="padding: 20px; text-align: center; color: #666;">No asks</div>'}
       </div>
       <div class="order-book-side">
         <div class="order-book-header">
           <div>Price (USDT)</div>
           <div>Size (BTC)</div>
         </div>
-        ${book.bids.map(order => `
+        ${book.bids ? book.bids.map(order => `
           <div class="order-book-row">
-            <div class="order-book-price buy-price">$${order.price.toFixed(2)}</div>
-            <div class="order-book-size">${order.size.toFixed(3)}</div>
+            <div class="order-book-price buy-price">$${(order?.price || 0).toFixed(2)}</div>
+            <div class="order-book-size">${(order?.size || 0).toFixed(3)}</div>
           </div>
-        `).join('')}
+        `).join('') : '<div style="padding: 20px; text-align: center; color: #666;">No bids</div>'}
       </div>
     </div>
   `;
