@@ -1,52 +1,20 @@
 
-// Simulation-only dataset, stored in localStorage for offline forensic testing.
-// SYSTEM_MODE: SIMULATION_ONLY prevents network actions.
-// This is a FORENSIC SIMULATION ENVIRONMENT - no real funds, APIs, or wallets
-const SYSTEM_MODE = "SIMULATION_ONLY";
+// DEPRECATED: This file is no longer used.
+// All user data now comes from the backend API via user-context.js
+// Keeping empty exports only for backwards compatibility with pages still importing from here
 
-// SECURITY: Default password loaded from environment variable (or use fallback)
-const DEFAULT_PASSWORD = 'demo123'; // Fallback for development
+// Stub exports to prevent import errors in legacy pages
+export const state = {};
+export function getCurrentUser() { return null; }
+export function saveState() {}
+export function addHistory() {}
+export function getAnnouncements() { return []; }
+export function recordAnnouncementView() {}
+export function getUserAnalytics() { return null; }
+export function getUserActivityTimeline() { return []; }
+export function createSupportTicket() { return null; }
+export function getUserSupportTickets() { return []; }
 
-const DEFAULT_USERS = [
-  { id: "u1", email: "alice@test.local", name: "Alice", password: DEFAULT_PASSWORD, balance: 10000, frozen:false, kyc:false, vip:false, history:[], deposits:[], withdrawals:[], spotBalance: 6000, futuresBalance: 3000, optionsBalance: 1000, createdAt: new Date('2024-01-15').toISOString() },
-  { id: "u2", email: "bob@test.local", name: "Bob", password: DEFAULT_PASSWORD, balance: 2500, frozen:false, kyc:false, vip:false, history:[], deposits:[], withdrawals:[], spotBalance: 1500, futuresBalance: 750, optionsBalance: 250, createdAt: new Date('2024-02-20').toISOString() },
-  { id: "u3", email: "carol@test.local", name: "Carol", password: DEFAULT_PASSWORD, balance: 50000, frozen:false, kyc:true, vip:true, history:[], deposits:[], withdrawals:[], spotBalance: 30000, futuresBalance: 15000, optionsBalance: 5000, createdAt: new Date('2023-12-01').toISOString() }
-];
-
-// SECURITY: Admin password fallback
-const ADMIN_PANEL_PASSWORD = 'admin123';
-
-function loadState(){
-  let s = localStorage.getItem("forensic_sim_state");
-  if(!s){
-    const seed = { users: DEFAULT_USERS, currentUser: DEFAULT_USERS[0].id, adminPass: ADMIN_PANEL_PASSWORD, cycles:{}, auditLog:[], announcements:[], supportTickets:[] };
-    localStorage.setItem("forensic_sim_state", JSON.stringify(seed));
-    return seed;
-  }
-  // If a state exists, ensure compatibility with new fields (password, createdAt)
-  const parsed = JSON.parse(s);
-  if (parsed && Array.isArray(parsed.users)) {
-    parsed.users = parsed.users.map(u => {
-      if (!u.password) u.password = DEFAULT_PASSWORD;
-      if (!u.createdAt) u.createdAt = new Date().toISOString();
-      if (!u.history) u.history = [];
-      if (!u.deposits) u.deposits = [];
-      if (!u.withdrawals) u.withdrawals = [];
-      return u;
-    });
-    // Persist any inferred defaults back to storage
-    localStorage.setItem("forensic_sim_state", JSON.stringify(parsed));
-  }
-  return parsed;
-}
-
-function saveState(state){ localStorage.setItem("forensic_sim_state", JSON.stringify(state)); }
-
-let state = loadState();
-
-function getUserById(id){ return state.users.find(u=>u.id===id); }
-function getCurrentUser(){ return getUserById(state.currentUser); }
-function setCurrentUser(id){ state.currentUser = id; saveState(state); }
 
 // Format history messages professionally like real crypto exchanges
 function formatHistoryMessage(action, meta={}){
@@ -233,7 +201,7 @@ function adminSimulateDailyProfit(userId){
 // Approve/Reject withdrawals stored as pending requests
 function requestWithdrawal(userId, amount){
   const u=getUserById(userId); if(!u) return {ok:false,msg:"User not found"};
-  if(u.frozen) return {ok:false,msg:"Account under review (simulation)"};
+  if(u.frozen) return {ok:false,msg:"Account under review"};
   if(u.kycLocked) return {ok:false,msg:"KYC verification required"};
   if(amount<=0 || amount>u.balance) return {ok:false,msg:"Invalid amount or insufficient balance"};
   // create pending request
@@ -311,9 +279,9 @@ function adminViewPendingDeposits(){
 
 function subscribeAI(userId, amount){
   const u=getUserById(userId); if(!u) return {ok:false, msg:"User not found"};
-  if(u.frozen) return {ok:false, msg:"Account under review (simulation)"};
+  if(u.frozen) return {ok:false, msg:"Account under review"};
   if(amount<30 || amount>3000) return {ok:false,msg:"Amount must be between 30 and 3000"};
-  if(amount>u.balance) return {ok:false,msg:"Insufficient balance (simulation)"};
+  if(amount>u.balance) return {ok:false,msg:"Insufficient balance"};
   u.balance = Number((u.balance - amount).toFixed(2));
   addHistory(userId,"subscribe.ai",{amount});
   // schedule a cycle if not exists

@@ -563,4 +563,65 @@ router.post('/reset-password',
   }
 );
 
+// Change password (authenticated users only)
+router.post('/change-password',
+  [
+    body('currentPassword').notEmpty(),
+    body('newPassword').isLength({ min: 6 }),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const token = req.headers.authorization?.replace('Bearer ', '');
+      
+      if (!token) {
+        return res.status(401).json({ error: 'No token provided' });
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const { currentPassword, newPassword } = req.body;
+
+      // Find user
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId }
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Verify current password
+      const validPassword = await bcrypt.compare(currentPassword, user.password);
+      if (!validPassword) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update user
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          password: hashedPassword,
+          history: {
+            create: createHistoryEntry('security.passwordChanged', {})
+          }
+        }
+      });
+
+      res.json({
+        message: 'Password changed successfully'
+      });
+    } catch (error) {
+      console.error('Change password error:', error);
+      res.status(500).json({ error: 'Failed to change password' });
+    }
+  }
+);
+
 export default router;

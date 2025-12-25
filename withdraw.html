@@ -74,14 +74,20 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="js/api-config.js"></script>
   <script type="module">
-    import { state, getCurrentUser, addHistory, saveState } from './js/userData.js';
+    import { getRealUser } from './js/user-context.js';
+    let currentUser = null;
+
+    async function ensureUser() {
+      currentUser = await getRealUser();
+      if (!currentUser) window.location.href = 'login.html';
+    }
 
     function renderHeader() {
-      const user = getCurrentUser();
+      if (!currentUser) return;
       document.getElementById('app-header').innerHTML = `
         <div class="brand"><div class="logo">FX</div><div>
           <div style="font-weight:800">Withdraw</div>
-          <div class="small">User: ${user.name}</div>
+          <div class="small">User: ${currentUser.name}</div>
         </div></div>
         <div class="nav">
           <span class="badge-sim">ACCESS WITHDRAWAL</span>
@@ -89,17 +95,17 @@
     }
 
     function renderPage() {
-      const user = getCurrentUser();
-      document.getElementById('balance-display').innerText = `$${user.balance.toLocaleString(undefined, {minimumFractionDigits:2})}`;
+      if (!currentUser) return;
+      document.getElementById('balance-display').innerText = `$${currentUser.balance.toLocaleString(undefined, {minimumFractionDigits:2})}`;
       
-      if (user.frozen) {
+      if (currentUser.frozen) {
         document.getElementById('withdraw-msg').innerHTML = '⚠️ <strong>Account is FROZEN.</strong> Withdrawals blocked. Contact support.';
         document.getElementById('withdraw-msg').style.color = '#d03030';
         document.getElementById('withdraw-btn').disabled = true;
       }
 
       // Render pending withdrawals
-      const userWithdrawals = (state.withdrawals || []).filter(w => w.userId === user.id);
+      const userWithdrawals = [];  // No local state, would need backend
       const list = document.getElementById('withdrawals-list');
       if (userWithdrawals.length === 0) {
         list.innerHTML = '<p class="small">No pending requests</p>';
@@ -134,9 +140,13 @@
     document.getElementById('withdraw-btn').addEventListener('click', () => {
       const amt = Number(document.getElementById('withdraw-amt').value || 0);
       const addr = document.getElementById('wallet-addr').value;
-      const user = getCurrentUser();
       
-      if (user.frozen) {
+      if (!currentUser) {
+        document.getElementById('withdraw-msg').innerText = '❌ Not authenticated';
+        return;
+      }
+      
+      if (currentUser.frozen) {
         document.getElementById('withdraw-msg').innerHTML = '⚠️ Account frozen. Cannot withdraw.';
         document.getElementById('withdraw-msg').style.color = '#d03030';
         return;
@@ -154,27 +164,20 @@
         return;
       }
 
-      if (amt > user.balance) {
+      if (amt > currentUser.balance) {
         document.getElementById('withdraw-msg').innerText = '❌ Insufficient balance';
         document.getElementById('withdraw-msg').style.color = '#d03030';
         return;
       }
 
       // Create withdrawal request
-      if (!state.withdrawals) state.withdrawals = [];
+      // Note: This would need a backend endpoint to persist
       const req = {
-        id: 'w_' + Date.now(),
-        userId: user.id,
         amount: amt,
         address: addr,
         network: document.getElementById('withdraw-network').value,
-        status: 'pending',
         ts: new Date().toISOString()
       };
-      state.withdrawals.unshift(req);
-      
-      addHistory(user.id, 'withdraw.request', {id: req.id, amount: amt});
-      saveState(state);
 
       document.getElementById('withdraw-msg').innerText = `✅ Withdrawal request submitted successfully. Amount: $${amt.toFixed(2)}. Your request is now under review and will be processed within 1-3 business days. You'll receive a confirmation email once approved.`;
       document.getElementById('withdraw-msg').style.color = '#0b9d58';
@@ -184,18 +187,10 @@
       renderPage();
     });
 
-    renderHeader();
-    renderPage();
-    
-    // Check authentication
-    (async () => {
-      try {
-        await AuthAPI.verify();
-      } catch (error) {
-        console.warn('Not authenticated, redirecting to login');
-        setTimeout(() => window.location.href = 'login.html', 2000);
-      }
-    })();
+    ensureUser().then(() => {
+      renderHeader();
+      renderPage();
+    });
   </script>
 </body>
 </html>

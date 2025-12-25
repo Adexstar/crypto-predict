@@ -220,73 +220,64 @@
 
     <script src="js/api-config.js"></script>
     <script type="module">
-        import { getCurrentUser, getUserAnalytics, getUserActivityTimeline } from './js/userData.js';
+        import { getRealUser } from './js/user-context.js';
+
+        let currentUser = null;
+
+        async function loadUser() {
+            currentUser = await getRealUser();
+            if (!currentUser) {
+                window.location.href = 'landing.html';
+                return;
+            }
+            renderAnalytics();
+        }
 
         function logout() {
             AuthAPI.logout();
         }
 
         function renderAnalytics() {
-            const user = getCurrentUser();
-            if (!user) {
-                window.location.href = 'landing.html';
-                return;
-            }
+            if (!currentUser) return;
+            
+            // Use real user data from backend
+            const balance = currentUser.balance || 0;
+            const frozen = currentUser.frozen || 0;
 
-            const analytics = getUserAnalytics(user.id);
-            const timeline = getUserActivityTimeline(user.id, 20);
+            // Populate stats with real user data
+            document.getElementById('stat-deposited').textContent = '$0.00';  // Not in real API yet
+            document.getElementById('stat-balance').textContent = '$' + balance.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('stat-profit').textContent = '$0.00';     // Not in real API yet
+            document.getElementById('stat-profit-pct').textContent = '0%';    // Not in real API yet
+            document.getElementById('stat-age').textContent = '0 days';       // Not in real API yet
+            document.getElementById('stat-withdrawn').textContent = '$0.00';  // Not in real API yet
+            document.getElementById('stat-netgain').textContent = '$' + balance.toLocaleString(undefined, {minimumFractionDigits: 2});
 
-            // Populate stats
-            document.getElementById('stat-deposited').textContent = '$' + analytics.totalDeposited.toLocaleString(undefined, {minimumFractionDigits: 2});
-            document.getElementById('stat-balance').textContent = '$' + analytics.currentBalance.toLocaleString(undefined, {minimumFractionDigits: 2});
-            document.getElementById('stat-profit').textContent = '$' + analytics.totalProfit.toLocaleString(undefined, {minimumFractionDigits: 2});
-            document.getElementById('stat-profit-pct').textContent = analytics.profitMargin + '%';
-            document.getElementById('stat-age').textContent = analytics.accountAge + ' days';
-            document.getElementById('stat-withdrawn').textContent = '$' + analytics.totalWithdrawn.toLocaleString(undefined, {minimumFractionDigits: 2});
-            document.getElementById('stat-netgain').textContent = '$' + analytics.netGain.toLocaleString(undefined, {minimumFractionDigits: 2});
-
-            // Portfolio breakdown
-            const total = analytics.totalDeposited + analytics.totalProfit;
+            // Portfolio breakdown - show current balance only
+            const total = balance || 1;
             if (total > 0) {
-                const depPct = (analytics.totalDeposited / total * 100).toFixed(1);
-                const profitPct = (analytics.totalProfit / total * 100).toFixed(1);
-                const withPct = (analytics.totalWithdrawn / total * 100).toFixed(1);
+                const balancePct = 100;
                 
-                document.getElementById('chart-dep').style.width = depPct + '%';
-                document.getElementById('chart-dep-pct').textContent = depPct + '%';
-                document.getElementById('chart-profit').style.width = profitPct + '%';
-                document.getElementById('chart-profit-pct').textContent = profitPct + '%';
-                document.getElementById('chart-with').style.width = Math.min(withPct, 100) + '%';
-                document.getElementById('chart-with-pct').textContent = withPct + '%';
+                document.getElementById('chart-dep').style.width = balancePct + '%';
+                document.getElementById('chart-dep-pct').textContent = balancePct + '%';
+                document.getElementById('chart-profit').style.width = '0%';
+                document.getElementById('chart-profit-pct').textContent = '0%';
+                document.getElementById('chart-with').style.width = '0%';
+                document.getElementById('chart-with-pct').textContent = '0%';
             }
 
             // Key metrics
-            document.getElementById('metric-trades').textContent = analytics.trades;
-            document.getElementById('metric-margin').textContent = analytics.profitMargin + '%';
+            document.getElementById('metric-trades').textContent = '0';       // Not in real API yet
+            document.getElementById('metric-margin').textContent = '0%';      // Not in real API yet
 
             // Activity timeline
             const tbody = document.getElementById('activity-tbody');
-            if (timeline.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #a1a1a9;">No activity yet</td></tr>';
-            } else {
-                tbody.innerHTML = timeline.map(entry => {
-                    let badgeClass = 'badge-profit';
-                    if (entry.action.includes('Deposit')) badgeClass = 'badge-deposit';
-                    if (entry.action.includes('Withdrawal')) badgeClass = 'badge-withdraw';
-                    
-                    return `
-                        <tr>
-                            <td>${entry.timestamp.toLocaleString()}</td>
-                            <td><span class="badge ${badgeClass}">${entry.action}</span></td>
-                            <td style="color: #f0ad4e; font-weight: 600;">$${entry.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-                            <td style="color: #a1a1a9; font-size: 0.9rem;">${JSON.stringify(entry.meta)}</td>
-                        </tr>
-                    `;
-                }).join('');
-            }
+            // Timeline - show empty for now
+            const tbody = document.getElementById('tbody-activity');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #a1a1a9;">No activity yet</td></tr>';
         }
 
-        renderAnalytics();
+        loadUser();
         window.logout = logout;
         
         // Check authentication

@@ -125,56 +125,23 @@
     
     <script src="js/api-config.js"></script>
     <script type="module">
-        import { getCurrentUser, getAnnouncements, recordAnnouncementView } from './js/userData.js';
+        import { getRealUser } from './js/user-context.js';
         
-        if (!getCurrentUser()) {
-            window.location.href = 'login.html';
-        }
-        
-        function loadAnnouncements() {
-            const announcements = getAnnouncements(50);
-            const container = document.getElementById('announcementsContainer');
-            
-            if (announcements.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No Announcements</h3>
-                        <p>Check back soon for important updates</p>
-                    </div>
-                `;
+        async function loadAnnouncements() {
+            const user = await getRealUser();
+            if (!user) {
+                window.location.href = 'login.html';
                 return;
             }
             
-            let html = '';
-            announcements.forEach(ann => {
-                const typeClass = `type-${ann.type}`;
-                const createdDate = new Date(ann.createdAt).toLocaleDateString();
-                const expiresDate = new Date(ann.expiresAt).toLocaleDateString();
-                
-                html += `
-                    <div class="announcement">
-                        <div class="announcement-header">
-                            <div>
-                                <div class="announcement-title">${ann.title}</div>
-                                ${ann.urgent ? '<span class="urgent-badge">⚠️ URGENT</span>' : ''}
-                            </div>
-                            <span class="announcement-type ${typeClass}">${ann.type.toUpperCase()}</span>
-                        </div>
-                        <div class="announcement-content">${ann.message}</div>
-                        <div class="announcement-footer">
-                            <div class="announcement-meta">
-                                📅 Posted: ${createdDate} | Expires: ${expiresDate}
-                            </div>
-                            <div class="announcement-views">👁️ ${ann.views || 0} views</div>
-                        </div>
-                    </div>
-                `;
-                
-                // Record view
-                recordAnnouncementView(ann.id);
-            });
+            const container = document.getElementById('announcementsContainer');
             
-            container.innerHTML = html;
+            // Show empty state for now - announcements from backend not yet implemented
+            container.innerHTML = `
+                <div class="empty-state">
+                    <h3>No Announcements</h3>
+                    <p>Check back soon for important updates</p>
+                </div>
         }
         
         window.logout = function() {

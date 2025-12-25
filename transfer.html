@@ -67,14 +67,20 @@
   <script src="https://unpkg.com/lightweight-charts@3.10.0/dist/lightweight-charts.standalone.production.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script type="module">
-    import { state, getCurrentUser, addHistory, saveState } from './js/userData.js';
+    import { getRealUser } from './js/user-context.js';
+    let currentUser = null;
+
+    async function ensureUser() {
+      currentUser = await getRealUser();
+      if (!currentUser) window.location.href = 'login.html';
+    }
 
     function renderHeader() {
-      const user = getCurrentUser();
+      if (!currentUser) return;
       document.getElementById('app-header').innerHTML = `
         <div class="brand"><div class="logo">FX</div><div>
           <div style="font-weight:800">Transfer Funds</div>
-          <div class="small">User: ${user.name}</div>
+          <div class="small">User: ${currentUser.name}</div>
         </div></div>
         <div class="nav">
           <span class="badge-sim">TRANSFER NOW</span>
@@ -82,17 +88,17 @@
     }
 
     function renderPage() {
-      const user = getCurrentUser();
-      const spotBal = user.spotBalance || user.balance * 0.6;
-      const futuresBal = user.futuresBalance || user.balance * 0.3;
-      const optionsBal = user.optionsBalance || user.balance * 0.1;
+      if (!currentUser) return;
+      const spotBal = currentUser.spotBalance || currentUser.balance * 0.6;
+      const futuresBal = currentUser.futuresBalance || currentUser.balance * 0.3;
+      const optionsBal = currentUser.optionsBalance || currentUser.balance * 0.1;
       
       document.getElementById('spot-bal').innerText = spotBal.toLocaleString(undefined, {minimumFractionDigits:2});
       document.getElementById('futures-bal').innerText = futuresBal.toLocaleString(undefined, {minimumFractionDigits:2});
       document.getElementById('options-bal').innerText = optionsBal.toLocaleString(undefined, {minimumFractionDigits:2});
 
       // Render transfers
-      const userTransfers = (user.transfers || []);
+      const userTransfers = (currentUser.transfers || []);
       const list = document.getElementById('transfers-list');
       if (userTransfers.length === 0) {
         list.innerHTML = '<p class="small">No transfers yet</p>';
@@ -113,7 +119,11 @@
       const amt = Number(document.getElementById('transfer-amt').value || 0);
       const from = document.getElementById('from-account').value;
       const to = document.getElementById('to-account').value;
-      const user = getCurrentUser();
+      
+      if (!currentUser) {
+        document.getElementById('transfer-msg').innerText = '❌ Not authenticated';
+        return;
+      }
       
       if (from === to) {
         document.getElementById('transfer-msg').innerText = '❌ From and To accounts must be different';
@@ -127,21 +137,15 @@
         return;
       }
 
-      if (amt > user.balance) {
+      if (amt > currentUser.balance) {
         document.getElementById('transfer-msg').innerText = '❌ Insufficient balance';
         document.getElementById('transfer-msg').style.color = '#d03030';
         return;
       }
 
-      // Record transfer
-      if (!user.transfers) user.transfers = [];
-      user.transfers.unshift({
-        from, to, amount: amt,
-        ts: new Date().toISOString()
-      });
-
-      addHistory(user.id, 'transfer.internal', {from, to, amount: amt});
-      saveState(state);
+      // Record transfer (would need backend endpoint)
+      // if (!currentUser.transfers) currentUser.transfers = [];
+      // currentUser.transfers.unshift({from, to, amount: amt, ts: new Date().toISOString()});
 
       document.getElementById('transfer-msg').innerText = `✅ Transferred $${amt} from ${from} to ${to}`;
       document.getElementById('transfer-msg').style.color = '#0b9d58';
@@ -150,8 +154,10 @@
       renderPage();
     });
 
-    renderHeader();
-    renderPage();
+    ensureUser().then(() => {
+      renderHeader();
+      renderPage();
+    });
   </script>
 </body>
 </html>

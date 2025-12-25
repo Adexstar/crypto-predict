@@ -75,13 +75,14 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script type="module">
-    import { getCurrentUser } from './js/userData.js';
+    import { getRealUser } from './js/user-context.js';
 
     let chart = null;
+    let currentUser = null;
 
-    function initPage() {
-      const user = getCurrentUser();
-      if (!user) {
+    async function initPage() {
+      currentUser = await getRealUser();
+      if (!currentUser) {
         window.location.href = 'login.html';
         return;
       }

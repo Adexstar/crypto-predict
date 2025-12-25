@@ -275,8 +275,30 @@
             }
             
             try {
-                // TODO: Call backend API to update profile
-                showAlert('Profile updates will be available soon', 'error');
+                const token = TokenManager.get();
+                if (!token) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                const response = await fetch(`${API_CONFIG.API_URL}/user/profile`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name: fullName })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(await response.text());
+                }
+                
+                const result = await response.json();
+                currentUser.name = result.user.name;
+                document.getElementById('displayName').textContent = result.user.name;
+                showAlert('Profile updated successfully', 'success');
+                resetProfileForm();
             } catch (error) {
                 showAlert(error.message || 'Failed to update profile', 'error');
             }
@@ -304,8 +326,44 @@
             }
             
             try {
-                // TODO: Call backend API to change password
-                showAlert('Password changes will be available soon', 'error');
+                const token = TokenManager.get();
+                if (!token) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                // Verify current password by attempting login with current credentials
+                const loginCheck = await fetch(`${API_CONFIG.API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: currentUser.email, password: oldPassword })
+                });
+                
+                if (!loginCheck.ok) {
+                    showAlert('Current password is incorrect', 'error');
+                    return;
+                }
+                
+                // Change password via reset endpoint (uses code-less flow for authenticated users)
+                const response = await fetch(`${API_CONFIG.API_URL}/auth/change-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ 
+                        currentPassword: oldPassword,
+                        newPassword: newPassword 
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Password change failed');
+                }
+                
+                showAlert('Password changed successfully', 'success');
+                resetPasswordForm();
             } catch (error) {
                 showAlert(error.message || 'Failed to change password', 'error');
             }
@@ -330,7 +388,6 @@
             alertBox.className = 'alert alert-' + type + ' show';
             setTimeout(() => alertBox.classList.remove('show'), 5000);
         }
-    </script>
     </script>
 </body>
 </html>
