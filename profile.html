@@ -196,56 +196,60 @@
     </div>
     
     <script src="js/api-config.js"></script>
-    <script type="module">
-        import { getCurrentUser, getUserProfile, updateUserProfile, changePassword, getLoginHistory } from './js/userData.js';
+    <script>
+        // Load real user data from API
+        let currentUser = null;
         
-        // Initialize
-        function init() {
-            const user = getCurrentUser();
-            if (!user) {
-                console.log('No user logged in, redirecting to login');
+        async function init() {
+            try {
+                // Fetch real user data
+                const response = await AuthAPI.verify();
+                currentUser = response.user || response;
+                
+                if (!currentUser || !currentUser.id) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                // Display profile info
+                document.getElementById('displayName').textContent = currentUser.name || 'Unknown';
+                document.getElementById('displayEmail').textContent = currentUser.email || 'Unknown';
+                document.getElementById('displayBalance').textContent = '$' + (currentUser.balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
+                
+                if (currentUser.createdAt) {
+                    document.getElementById('displayCreated').textContent = new Date(currentUser.createdAt).toLocaleDateString();
+                    const accountAgeMs = new Date() - new Date(currentUser.createdAt);
+                    const days = Math.floor(accountAgeMs / (1000 * 60 * 60 * 24));
+                    document.getElementById('accountAge').textContent = days + ' days old';
+                } else {
+                    document.getElementById('displayCreated').textContent = 'Unknown';
+                    document.getElementById('accountAge').textContent = '- days old';
+                }
+                
+                // Account status
+                const statusSpan = document.createElement('span');
+                statusSpan.className = 'status-badge ' + (currentUser.frozen ? 'status-frozen' : 'status-active');
+                statusSpan.textContent = currentUser.frozen ? 'FROZEN' : 'ACTIVE';
+                document.getElementById('displayStatus').textContent = '';
+                document.getElementById('displayStatus').appendChild(statusSpan);
+                
+                // KYC Status
+                const kycSpan = document.createElement('span');
+                kycSpan.className = 'status-badge ' + (currentUser.kyc ? 'status-active' : 'status-frozen');
+                kycSpan.textContent = currentUser.kyc ? 'VERIFIED' : 'PENDING';
+                document.getElementById('displayKYC').textContent = '';
+                document.getElementById('displayKYC').appendChild(kycSpan);
+                
+                // Populate forms
+                document.getElementById('fullName').value = currentUser.name || '';
+                document.getElementById('emailInput').value = currentUser.email || '';
+                
+                // Load activity history
+                renderEmptyHistory();
+            } catch (error) {
+                console.error('Failed to load profile:', error);
                 window.location.href = 'login.html';
-                return;
             }
-            
-            const profile = getUserProfile(user.id);
-            
-            // Display profile info
-            document.getElementById('displayName').textContent = user.name || 'Unknown';
-            document.getElementById('displayEmail').textContent = user.email || 'Unknown';
-            document.getElementById('displayBalance').textContent = '$' + (user.balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
-            
-            if (user.createdAt) {
-                document.getElementById('displayCreated').textContent = new Date(user.createdAt).toLocaleDateString();
-                const accountAgeMs = new Date() - new Date(user.createdAt);
-                const days = Math.floor(accountAgeMs / (1000 * 60 * 60 * 24));
-                document.getElementById('accountAge').textContent = days + ' days old';
-            } else {
-                document.getElementById('displayCreated').textContent = 'Unknown';
-                document.getElementById('accountAge').textContent = '- days old';
-            }
-            
-            // Account status
-            const statusSpan = document.createElement('span');
-            statusSpan.className = 'status-badge ' + (user.frozen ? 'status-frozen' : 'status-active');
-            statusSpan.textContent = user.frozen ? 'FROZEN' : 'ACTIVE';
-            document.getElementById('displayStatus').textContent = '';
-            document.getElementById('displayStatus').appendChild(statusSpan);
-            
-            // KYC Status
-            const kycSpan = document.createElement('span');
-            kycSpan.className = 'status-badge ' + (user.kyc ? 'status-active' : 'status-frozen');
-            kycSpan.textContent = user.kyc ? 'VERIFIED' : 'PENDING';
-            document.getElementById('displayKYC').textContent = '';
-            document.getElementById('displayKYC').appendChild(kycSpan);
-            
-            // Populate forms
-            document.getElementById('fullName').value = user.name || '';
-            document.getElementById('emailInput').value = user.email || '';
-            
-            // Load activity history
-            const history = getLoginHistory(user.id);
-            renderHistory(history);
         }
         
         // Call init when DOM is ready
@@ -255,26 +259,13 @@
             init();
         }
         
-        function renderHistory(history) {
+        function renderEmptyHistory() {
             const container = document.getElementById('historyContainer');
-            if (!history || history.length === 0) {
-                container.innerHTML = '<p style="color: #aaa;">No login activity yet</p>';
-                return;
-            }
-            
-            const recentHistory = history.slice(-10).reverse();
-            let html = '<table class="history-table"><thead><tr><th>Date & Time</th><th>Action</th></tr></thead><tbody>';
-            recentHistory.forEach(h => {
-                const date = new Date(h.ts).toLocaleString();
-                html += `<tr><td>${date}</td><td>${h.action}</td></tr>`;
-            });
-            html += '</tbody></table>';
-            container.innerHTML = html;
+            container.innerHTML = '<p style="color: #aaa;">No login activity yet</p>';
         }
         
-        window.handleProfileUpdate = function(event) {
+        window.handleProfileUpdate = async function(event) {
             event.preventDefault();
-            const user = getCurrentUser();
             const fullName = document.getElementById('fullName').value.trim();
             const email = document.getElementById('emailInput').value.trim();
             
@@ -283,18 +274,16 @@
                 return;
             }
             
-            const result = updateUserProfile(user.id, { name: fullName, email });
-            if (result.ok) {
-                showAlert('Profile updated successfully!', 'success');
-                init();
-            } else {
-                showAlert(result.error || 'Failed to update profile', 'error');
+            try {
+                // TODO: Call backend API to update profile
+                showAlert('Profile updates will be available soon', 'error');
+            } catch (error) {
+                showAlert(error.message || 'Failed to update profile', 'error');
             }
         };
         
-        window.handlePasswordChange = function(event) {
+        window.handlePasswordChange = async function(event) {
             event.preventDefault();
-            const user = getCurrentUser();
             const oldPassword = document.getElementById('oldPassword').value;
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
@@ -314,19 +303,17 @@
                 return;
             }
             
-            const result = changePassword(user.id, oldPassword, newPassword);
-            if (result.ok) {
-                showAlert('Password changed successfully!', 'success');
-                resetPasswordForm();
-            } else {
-                showAlert(result.error || 'Failed to change password', 'error');
+            try {
+                // TODO: Call backend API to change password
+                showAlert('Password changes will be available soon', 'error');
+            } catch (error) {
+                showAlert(error.message || 'Failed to change password', 'error');
             }
         };
         
         window.resetProfileForm = function() {
-            const user = getCurrentUser();
-            document.getElementById('fullName').value = user.name || '';
-            document.getElementById('emailInput').value = user.email || '';
+            document.getElementById('fullName').value = currentUser.name || '';
+            document.getElementById('emailInput').value = currentUser.email || '';
         };
         
         window.resetPasswordForm = function() {
@@ -343,16 +330,7 @@
             alertBox.className = 'alert alert-' + type + ' show';
             setTimeout(() => alertBox.classList.remove('show'), 5000);
         }
-        
-        // Check authentication
-        (async () => {
-            try {
-                await AuthAPI.verify();
-            } catch (error) {
-                console.warn('Not authenticated, redirecting to login');
-                setTimeout(() => window.location.href = 'login.html', 2000);
-            }
-        })();
+    </script>
     </script>
 </body>
 </html>
