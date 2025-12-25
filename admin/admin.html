@@ -529,10 +529,12 @@
     // Check admin auth on page load
     (async () => {
       try {
-        const userData = await AuthAPI.verify();
+        const response = await AuthAPI.verify();
+        const userData = response.user || response;
         if (userData.role !== 'ADMIN') {
           alert('Admin access required');
           AuthAPI.logout();
+          window.location.href = './login.html';
         }
       } catch (error) {
         console.error('Auth failed:', error);
