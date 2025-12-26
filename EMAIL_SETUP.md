@@ -1,14 +1,59 @@
 # Email Configuration Setup Guide
 
 ## Overview
-The application uses Nodemailer to send verification and password reset emails. 
+The application sends verification and password reset emails using API-based email services.
 
-⚠️ **IMPORTANT**: Railway and many cloud providers block outbound SMTP connections (ports 587/465) for security. If you see "Connection timeout" errors even with correct Gmail credentials, **use SendGrid API instead** (Option 1 below).
+⚠️ **IMPORTANT**: Railway and most cloud providers block outbound SMTP connections (ports 587/465). **Use Resend or SendGrid API** instead.
 
-## Setup Options
+## Recommended Setup
 
-### Option 1: SendGrid API (RECOMMENDED for Railway/Cloud)
-SendGrid uses HTTP API instead of SMTP, which works reliably in cloud environments.
+### Option 1: Resend API ⭐ RECOMMENDED
+Resend is developer-friendly with a generous free tier (3,000 emails/month).
+
+#### Steps:
+1. **Create Resend Account**
+   - Go to https://resend.com
+   - Sign up for free (no credit card required)
+
+2. **Get API Key**
+   - After signup, you'll see your API key immediately
+   - Or go to: API Keys → Create API Key
+   - Copy the key (starts with `re_`)
+
+3. **Add Domain (Optional but Recommended)**
+   - Go to Domains → Add Domain
+   - Enter your domain (e.g., `yourdomain.com`)
+   - Add the DNS records shown (or use `onboarding@resend.dev` for testing)
+   - Verify the domain
+
+4. **Configure Railway Environment Variables**
+   - Go to your Railway project dashboard
+   - Click on your Node.js service
+   - Go to "Variables" tab
+   - Add these variables:
+     ```
+     EMAIL_SERVICE=resend
+     RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxx
+     EMAIL_FROM=noreply@yourdomain.com
+     ```
+   - Replace `re_xxxxxxxxxxxxxxxxxx` with your actual API key from step 2
+   - Replace `noreply@yourdomain.com` with:
+     - Your verified domain email (if you added a domain)
+     - OR `onboarding@resend.dev` for testing
+
+5. **Redeploy**
+   - Go to "Deployments" tab
+   - Click "Redeploy" on the latest deployment
+   - Wait for deployment to complete (~2-5 minutes)
+
+6. **Test**
+   - Visit your app and try password reset
+   - Check Railway logs: should see `✅ Email service configured: Resend API`
+
+---
+
+### Option 2: SendGrid API (Alternative)
+SendGrid works well but has a smaller free tier (100 emails/day).
 
 #### Steps:
 1. **Create SendGrid Account**
@@ -51,8 +96,8 @@ SendGrid uses HTTP API instead of SMTP, which works reliably in cloud environmen
 
 ---
 
-### Option 2: Gmail (Only if SMTP ports are NOT blocked)
-Gmail works but requires App Passwords and may be blocked by cloud providers.
+### Option 3: Gmail SMTP (NOT Recommended for Cloud)
+⚠️ Gmail SMTP requires ports 587/465 which are blocked by Railway. Use Resend or SendGrid instead.
 
 #### Steps:
 1. **Create a Google Account** (if you don't have one)

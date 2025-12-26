@@ -1,10 +1,13 @@
 import nodemailer from 'nodemailer';
 import sgMail from '@sendgrid/mail';
+import { Resend } from 'resend';
 
 // Email transporter configuration
 let transporter;
 let emailConfigured = false;
 let usingSendGrid = false;
+let usingResend = false;
+let resendClient;
 
 // Initialize email service
 function initializeEmailService() {
@@ -12,8 +15,28 @@ function initializeEmailService() {
   const emailUser = process.env.EMAIL_USER;
   const emailPassword = process.env.EMAIL_PASSWORD;
   const sendgridApiKey = process.env.SENDGRID_API_KEY;
+  const resendApiKey = process.env.RESEND_API_KEY;
   
-  // Check for SendGrid API first (recommended for cloud deployments)
+  // Check for Resend API first (recommended - generous free tier)
+  if (emailService === 'resend' || emailService === 'resend-api' || resendApiKey) {
+    if (!resendApiKey) {
+      console.warn('⚠️  Resend selected but RESEND_API_KEY is missing');
+      return;
+    }
+    
+    try {
+      resendClient = new Resend(resendApiKey);
+      usingResend = true;
+      emailConfigured = true;
+      console.log('✅ Email service configured: Resend API (recommended for cloud - 3,000 emails/month free)');
+      return;
+    } catch (error) {
+      console.error('❌ Failed to initialize Resend:', error.message);
+      return;
+    }
+  }
+  
+  // Check for SendGrid API (alternative)
   if (emailService === 'sendgrid-api' || sendgridApiKey) {
     if (!sendgridApiKey) {
       console.warn('⚠️  SendGrid API selected but SENDGRID_API_KEY is missing');
@@ -35,9 +58,9 @@ function initializeEmailService() {
   // Fall back to SMTP-based email services
   if (!emailService || !emailUser || !emailPassword) {
     console.warn('⚠️  EMAIL SERVICE NOT CONFIGURED');
-    console.warn('   For cloud deployments (Railway), use SendGrid API:');
-    console.warn('   - Set EMAIL_SERVICE=sendgrid-api');
-    console.warn('   - Set SENDGRID_API_KEY=your-api-key');
+    console.warn('   For cloud deployments (Railway), use Resend API:');
+    console.warn('   - Set EMAIL_SERVICE=resend');
+    console.warn('   - Set RESEND_API_KEY=re_xxxxx');
     console.warn('   - Set EMAIL_FROM=verified@yourdomain.com');
     console.warn('   See EMAIL_SETUP.md for detailed instructions');
     return;
@@ -240,7 +263,24 @@ export async function sendVerificationEmail(email, code, name = 'User') {
     `
   };
 
-  // SendGrid API (recommended for cloud)
+  // Resend API (recommended for cloud - generous free tier)
+  if (usingResend && emailConfigured) {
+    try {
+      console.log(`📤 Sending verification email via Resend to ${email}...`);
+      await resendClient.emails.send({
+        from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+        to: email,
+        subject: mailOptions.subject,
+        html: mailOptions.html
+      });
+      console.log(`✅ Verification email sent to ${email}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ Resend email failed: ${error.message}`);
+    }
+  }
+
+  // SendGrid API (alternative)
   if (usingSendGrid && emailConfigured) {
     try {
       console.log(`📤 Sending verification email via SendGrid to ${email}...`);
@@ -392,7 +432,24 @@ export async function sendPasswordResetEmail(email, code, name = 'User') {
     `
   };
 
-  // SendGrid API (recommended for cloud)
+  // Resend API (recommended for cloud - generous free tier)
+  if (usingResend && emailConfigured) {
+    try {
+      console.log(`📤 Sending password reset email via Resend to ${email}...`);
+      await resendClient.emails.send({
+        from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+        to: email,
+        subject: mailOptions.subject,
+        html: mailOptions.html
+      });
+      console.log(`✅ Password reset email sent to ${email}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ Resend email failed: ${error.message}`);
+    }
+  }
+
+  // SendGrid API (alternative)
   if (usingSendGrid && emailConfigured) {
     try {
       console.log(`📤 Sending password reset email via SendGrid to ${email}...`);
