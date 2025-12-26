@@ -81,7 +81,7 @@ Value: https://crypto-predict-ebon.vercel.app
 
 After redeploy:
 
-1. Go to: https://crypto-predict-ebon.vercel.app/admin/login.html
+1. Go to: https://crypto-predict-ebon.vercel.app/secure-admin-panel-7k9m2x/login.html
 2. Enter your admin email and password
 3. You should be logged in ✅
 
