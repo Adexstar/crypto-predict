@@ -152,13 +152,18 @@ router.post('/register',
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Update user with complete registration
+      // Update user with complete registration + initialize balances
+      const STARTING_BALANCE = 100; // $100 for each account type
       const user = await prisma.user.update({
         where: { id: existing.id },
         data: {
           password: hashedPassword,
           name: name || email.split('@')[0],
           emailVerified: true, // Verified immediately since they used the code
+          balance: STARTING_BALANCE,
+          spotBalance: STARTING_BALANCE,
+          futuresBalance: STARTING_BALANCE,
+          optionsBalance: STARTING_BALANCE,
           verificationCode: null,
           verificationCodeExpires: null,
           pendingRegistration: false,
