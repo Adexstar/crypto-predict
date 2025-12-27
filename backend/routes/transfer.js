@@ -37,19 +37,25 @@ router.post('/', async (req, res) => {
     }
 
     // Perform transfer in a transaction
+    const updateData = {
+      history: {
+        create: createHistoryEntry('transfer.completed', {
+          from: fromAccount,
+          to: toAccount,
+          amount
+        })
+      }
+    };
+    
+    // Properly construct field names and set new values
+    const fromField = `${fromAccount}Balance`;
+    const toField = `${toAccount}Balance`;
+    updateData[fromField] = sourceBalance - amount;
+    updateData[toField] = (user[`${toAccount}Balance`] || 0) + amount;
+    
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
-      data: {
-        [`${fromAccount}Balance`]: { decrement: amount },
-        [`${toAccount}Balance`]: { increment: amount },
-        history: {
-          create: createHistoryEntry('transfer.completed', {
-            from: fromAccount,
-            to: toAccount,
-            amount
-          })
-        }
-      },
+      data: updateData,
       select: {
         id: true,
         email: true,
