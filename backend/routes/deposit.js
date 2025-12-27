@@ -21,10 +21,7 @@ router.post('/', async (req, res) => {
     const depositData = {
       userId: req.user.id,
       amount,
-      status: 'PENDING',
-      network: network || null,
-      asset: asset || null,
-      walletAddress: walletAddress || null
+      status: 'PENDING'
     };
 
     const deposit = await prisma.deposit.create({

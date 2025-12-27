@@ -37,9 +37,7 @@ router.post('/', async (req, res) => {
       data: {
         userId: req.user.id,
         amount,
-        status: 'PENDING',
-        walletAddress: walletAddress || null,
-        network: network || null
+        status: 'PENDING'
       }
     });
 
