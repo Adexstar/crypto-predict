@@ -70,17 +70,9 @@ model Deposit {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   amount          Float
-  network         String?
-  asset           String?
-  walletAddress   String?
   status          String @default("PENDING")  // "PENDING", "CONFIRMED", "REJECTED"
   
-  confirmedAt     DateTime?
-  rejectedAt      DateTime?
-  rejectionReason String?
-  
   createdAt       DateTime @default(now())
-  expiresAt       DateTime?
   
   @@index([userId])
   @@index([status])
@@ -93,13 +85,7 @@ model Withdrawal {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   amount          Float
-  walletAddress   String?
-  network         String?
   status          String @default("PENDING")  // "PENDING", "APPROVED", "REJECTED", "COMPLETED"
-  
-  approvedAt      DateTime?
-  rejectedAt      DateTime?
-  rejectionReason String?
   
   createdAt       DateTime @default(now())
   
