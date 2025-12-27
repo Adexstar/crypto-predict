@@ -72,6 +72,12 @@ model Deposit {
   
   amount          Float
   status          String @default("PENDING")  // "PENDING", "CONFIRMED", "REJECTED"
+  network         String?
+  asset           String?
+  walletAddress   String?
+  confirmedAt     DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
   
   createdAt       DateTime @default(now())
   
@@ -87,6 +93,10 @@ model Withdrawal {
   
   amount          Float
   status          String @default("PENDING")  // "PENDING", "APPROVED", "REJECTED", "COMPLETED"
+  network         String?
+  walletAddress   String?
+  approvedAt      DateTime?
+  completedAt     DateTime?
   
   createdAt       DateTime @default(now())
   

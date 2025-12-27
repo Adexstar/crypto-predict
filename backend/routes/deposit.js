@@ -17,11 +17,13 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Invalid amount' });
     }
 
-    // Basic deposit data - only include columns that definitely exist
     const depositData = {
       userId: req.user.id,
       amount,
-      status: 'PENDING'
+      status: 'PENDING',
+      network: network || null,
+      asset: asset || null,
+      walletAddress: walletAddress || null
     };
 
     const deposit = await prisma.deposit.create({
@@ -70,7 +72,13 @@ router.get('/', async (req, res) => {
         userId: true,
         amount: true,
         status: true,
-        createdAt: true
+        network: true,
+        asset: true,
+        walletAddress: true,
+        createdAt: true,
+        confirmedAt: true,
+        rejectedAt: true,
+        rejectionReason: true
       },
       orderBy: { createdAt: 'desc' }
     });

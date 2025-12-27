@@ -37,7 +37,9 @@ router.post('/', async (req, res) => {
       data: {
         userId: req.user.id,
         amount,
-        status: 'PENDING'
+        status: 'PENDING',
+        walletAddress: walletAddress || null,
+        network: network || null
       }
     });
 
@@ -79,7 +81,11 @@ router.get('/', async (req, res) => {
         userId: true,
         amount: true,
         status: true,
-        createdAt: true
+        network: true,
+        walletAddress: true,
+        createdAt: true,
+        approvedAt: true,
+        completedAt: true
       },
       orderBy: { createdAt: 'desc' }
     });
