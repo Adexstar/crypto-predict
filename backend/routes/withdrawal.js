@@ -37,9 +37,10 @@ router.post('/', async (req, res) => {
       data: {
         userId: req.user.id,
         amount,
-        walletAddress,
-        network: network || 'TRC20',
-        status: 'PENDING'
+        status: 'PENDING',
+        // Store crypto withdrawal details
+        ...(walletAddress && { walletAddress }),
+        ...(network && { network })
       }
     });
 
@@ -59,7 +60,7 @@ router.post('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Withdrawal error:', error);
-    res.status(500).json({ error: 'Failed to submit withdrawal' });
+    res.status(500).json({ error: 'Failed to submit withdrawal', details: error.message });
   }
 });
 
@@ -68,13 +69,20 @@ router.get('/', async (req, res) => {
   try {
     const withdrawals = await prisma.withdrawal.findMany({
       where: { userId: req.user.id },
+      select: {
+        id: true,
+        userId: true,
+        amount: true,
+        status: true,
+        createdAt: true
+      },
       orderBy: { createdAt: 'desc' }
     });
 
     res.json({ withdrawals });
   } catch (error) {
     console.error('Get withdrawals error:', error);
-    res.status(500).json({ error: 'Failed to fetch withdrawals' });
+    res.status(500).json({ error: 'Failed to fetch withdrawals', details: error.message });
   }
 });
 

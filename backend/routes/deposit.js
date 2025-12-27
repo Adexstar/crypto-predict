@@ -17,16 +17,19 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Invalid amount' });
     }
 
+    const depositData = {
+      userId: req.user.id,
+      amount,
+      status: 'PENDING',
+      // Store crypto transaction details
+      ...(network && { network }),
+      ...(asset && { asset }),
+      ...(walletAddress && { walletAddress }),
+      expiresAt: new Date(Date.now() + 30 * 60000) // 30 min expiry
+    };
+
     const deposit = await prisma.deposit.create({
-      data: {
-        userId: req.user.id,
-        amount,
-        network: network || 'TRC20',
-        asset: asset || 'USDT',
-        walletAddress,
-        status: 'PENDING',
-        expiresAt: new Date(Date.now() + 30 * 60000) // 30 min
-      }
+      data: depositData
     });
 
     await prisma.history.create({
@@ -47,22 +50,30 @@ router.post('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Deposit error:', error);
-    res.status(500).json({ error: 'Failed to submit deposit' });
+    res.status(500).json({ error: 'Failed to submit deposit', details: error.message });
   }
 });
 
 // Get user deposits
 router.get('/', async (req, res) => {
   try {
+    // Only select columns that are guaranteed to exist
     const deposits = await prisma.deposit.findMany({
       where: { userId: req.user.id },
+      select: {
+        id: true,
+        userId: true,
+        amount: true,
+        status: true,
+        createdAt: true
+      },
       orderBy: { createdAt: 'desc' }
     });
 
     res.json({ deposits });
   } catch (error) {
     console.error('Get deposits error:', error);
-    res.status(500).json({ error: 'Failed to fetch deposits' });
+    res.status(500).json({ error: 'Failed to fetch deposits', details: error.message });
   }
 });
 
