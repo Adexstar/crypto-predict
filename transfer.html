@@ -74,6 +74,7 @@
     async function ensureUser() {
       currentUser = await getRealUser();
       if (!currentUser) window.location.href = 'login.html';
+      else renderPage();
     }
 
     function renderHeader() {
@@ -88,77 +89,119 @@
         </div>`;
     }
 
-    function renderPage() {
+    async function renderPage() {
       if (!currentUser) return;
-      const spotBal = currentUser.spotBalance || currentUser.balance * 0.6;
-      const futuresBal = currentUser.futuresBalance || currentUser.balance * 0.3;
-      const optionsBal = currentUser.optionsBalance || currentUser.balance * 0.1;
+      
+      const spotBal = currentUser.spotBalance || 0;
+      const futuresBal = currentUser.futuresBalance || 0;
+      const optionsBal = currentUser.optionsBalance || 0;
       
       document.getElementById('spot-bal').innerText = spotBal.toLocaleString(undefined, {minimumFractionDigits:2});
       document.getElementById('futures-bal').innerText = futuresBal.toLocaleString(undefined, {minimumFractionDigits:2});
       document.getElementById('options-bal').innerText = optionsBal.toLocaleString(undefined, {minimumFractionDigits:2});
 
-      // Render transfers
-      const userTransfers = (currentUser.transfers || []);
-      const list = document.getElementById('transfers-list');
-      if (userTransfers.length === 0) {
-        list.innerHTML = '<p class="small">No transfers yet</p>';
-      } else {
-        list.innerHTML = userTransfers.slice(0, 10).map(t => `
-          <div class="card" style="margin-bottom:10px;padding:10px;background:#f0f4ff">
-            <div class="kv">
-              <div><strong>$${t.amount.toLocaleString()}</strong></div>
-              <div class="small">${t.from} → ${t.to}</div>
-            </div>
-            <div class="small" style="margin-top:5px">${new Date(t.ts).toLocaleString()}</div>
-          </div>
-        `).join('');
+      // Load transfers from API
+      try {
+        const response = await fetch('/api/transfers', {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const data = await response.json();
+        
+        const list = document.getElementById('transfers-list');
+        if (!data.transfers || data.transfers.length === 0) {
+          list.innerHTML = '<p class="small">No transfers yet</p>';
+        } else {
+          list.innerHTML = data.transfers.slice(0, 10).map(t => {
+            const meta = typeof t.meta === 'string' ? JSON.parse(t.meta) : t.meta;
+            return `
+              <div class="card" style="margin-bottom:10px;padding:10px;background:#f0f4ff">
+                <div class="kv">
+                  <div><strong>$${(meta.amount || 0).toLocaleString(undefined, {minimumFractionDigits:2})}</strong></div>
+                  <div class="small">${meta.from || 'unknown'} → ${meta.to || 'unknown'}</div>
+                </div>
+                <div class="small" style="margin-top:5px">${new Date(t.createdAt).toLocaleString()}</div>
+              </div>
+            `;
+          }).join('');
+        }
+      } catch (error) {
+        console.error('Failed to load transfers:', error);
+        document.getElementById('transfers-list').innerHTML = '<p class="small error">Failed to load transfer history</p>';
       }
     }
 
-    document.getElementById('transfer-btn').addEventListener('click', () => {
+    document.getElementById('transfer-btn').addEventListener('click', async () => {
       const amt = Number(document.getElementById('transfer-amt').value || 0);
       const from = document.getElementById('from-account').value;
       const to = document.getElementById('to-account').value;
+      const msgEl = document.getElementById('transfer-msg');
       
       if (!currentUser) {
-        document.getElementById('transfer-msg').innerText = '❌ Not authenticated';
+        msgEl.innerText = '❌ Not authenticated';
+        msgEl.style.color = '#d03030';
         return;
       }
       
       if (from === to) {
-        document.getElementById('transfer-msg').innerText = '❌ From and To accounts must be different';
-        document.getElementById('transfer-msg').style.color = '#d03030';
+        msgEl.innerText = '❌ From and To accounts must be different';
+        msgEl.style.color = '#d03030';
         return;
       }
 
       if (amt <= 0) {
-        document.getElementById('transfer-msg').innerText = '❌ Enter a valid amount';
-        document.getElementById('transfer-msg').style.color = '#d03030';
+        msgEl.innerText = '❌ Enter a valid amount';
+        msgEl.style.color = '#d03030';
         return;
       }
 
-      if (amt > currentUser.balance) {
-        document.getElementById('transfer-msg').innerText = '❌ Insufficient balance';
-        document.getElementById('transfer-msg').style.color = '#d03030';
+      const sourceBalance = currentUser[`${from}Balance`] || 0;
+      if (amt > sourceBalance) {
+        msgEl.innerText = `❌ Insufficient ${from} balance`;
+        msgEl.style.color = '#d03030';
         return;
       }
 
-      // Record transfer (would need backend endpoint)
-      // if (!currentUser.transfers) currentUser.transfers = [];
-      // currentUser.transfers.unshift({from, to, amount: amt, ts: new Date().toISOString()});
+      try {
+        msgEl.innerText = '⏳ Processing transfer...';
+        msgEl.style.color = '#f0ad4e';
+        
+        const response = await fetch('/api/transfers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            fromAccount: from,
+            toAccount: to,
+            amount: amt
+          })
+        });
 
-      document.getElementById('transfer-msg').innerText = `✅ Transferred $${amt} from ${from} to ${to}`;
-      document.getElementById('transfer-msg').style.color = '#0b9d58';
-      document.getElementById('transfer-amt').value = '';
-      
-      renderPage();
+        const data = await response.json();
+        
+        if (response.ok) {
+          msgEl.innerText = `✅ ${data.message}`;
+          msgEl.style.color = '#0b9d58';
+          document.getElementById('transfer-amt').value = '';
+          
+          // Update local user data
+          currentUser = data.user;
+          await renderPage();
+        } else {
+          msgEl.innerText = `❌ ${data.error}`;
+          msgEl.style.color = '#d03030';
+        }
+      } catch (error) {
+        console.error('Transfer error:', error);
+        msgEl.innerText = '❌ Transfer failed. Please try again.';
+        msgEl.style.color = '#d03030';
+      }
     });
 
-    ensureUser().then(() => {
-      renderHeader();
-      renderPage();
-    });
+    renderHeader();
+    ensureUser();
   </script>
 </body>
 </html>

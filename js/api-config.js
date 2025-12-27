@@ -234,6 +234,18 @@ const WithdrawalAPI = {
     }
 };
 
+// Transfer API calls
+const TransferAPI = {
+    async submit(transferData) {
+        return await API.post('/transfers', transferData);
+    },
+    
+    async getMyTransfers() {
+        const response = await API.get('/transfers');
+        return response.transfers || [];
+    }
+};
+
 // Admin API calls
 const AdminAPI = {
     async getUsers() {
@@ -346,6 +358,7 @@ window.AuthAPI = AuthAPI;
 window.UserAPI = UserAPI;
 window.DepositAPI = DepositAPI;
 window.WithdrawalAPI = WithdrawalAPI;
+window.TransferAPI = TransferAPI;
 window.AdminAPI = AdminAPI;
 window.SupportAPI = SupportAPI;
 window.AnnouncementAPI = AnnouncementAPI;

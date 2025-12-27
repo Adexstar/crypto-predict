@@ -16,6 +16,9 @@ export function formatHistoryMessage(action, meta = {}) {
     'withdraw.approved': `Withdrawal approved - ${formattedAmount} will be sent shortly`,
     'withdraw.rejected': `Withdrawal rejected - Please contact support`,
     
+    // Transfers
+    'transfer.completed': `Transfer from ${meta.from || 'account'} to ${meta.to || 'account'} - ${formattedAmount}`,
+    
     // Trading profits (admin injections appear as trading profits)
     'admin.injectProfit': `Trading profit - ${formattedAmount} earned`,
     'admin.dailyProfit': `Daily trading profit - ${formattedAmount}`,
