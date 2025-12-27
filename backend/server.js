@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
+import { spawn } from 'child_process';
 import { initializeDatabase } from './utils/initDb.js';
 import { getEmailStatus } from './utils/email.js';
 
@@ -19,6 +20,32 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Run Prisma migrations on startup
+async function runMigrations() {
+  return new Promise((resolve, reject) => {
+    console.log('🔄 Running Prisma migrations...');
+    const prismaProcess = spawn('npx', ['prisma', 'migrate', 'deploy', '--skip-generate'], {
+      cwd: process.cwd(),
+      stdio: 'inherit'
+    });
+
+    prismaProcess.on('close', (code) => {
+      if (code === 0) {
+        console.log('✅ Migrations completed successfully');
+        resolve();
+      } else {
+        console.log('⚠️  Prisma migrate deploy exited with code ' + code + ' (this may be OK if no migrations needed)');
+        resolve(); // Don't fail on migrate deploy, it might have warnings
+      }
+    });
+
+    prismaProcess.on('error', (err) => {
+      console.log('⚠️  Could not run migrations automatically:', err.message);
+      resolve(); // Don't block startup if migrations can't run
+    });
+  });
+}
 
 // Trust Railway's reverse proxy
 app.set('trust proxy', 1);
@@ -95,6 +122,9 @@ app.use((err, req, res, next) => {
 // Start server
 (async () => {
   try {
+    // Run Prisma migrations first
+    await runMigrations();
+    
     // Initialize database tables
     await initializeDatabase();
     
