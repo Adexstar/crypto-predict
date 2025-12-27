@@ -92,7 +92,7 @@ router.get('/pending', authenticate, async (req, res) => {
     console.log('✅ Admin verified, fetching deposits...');
     // Query only columns that exist in the current database schema
     const deposits = await prisma.deposit.findMany({
-      where: { status: 'pending' },
+      where: { status: 'PENDING' },
       select: {
         id: true,
         userId: true,
