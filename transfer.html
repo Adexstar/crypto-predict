@@ -92,6 +92,14 @@
     async function renderPage() {
       if (!currentUser) return;
       
+      // Refresh user data to get latest balances
+      try {
+        const freshUser = await UserAPI.getProfile();
+        currentUser = freshUser.user || freshUser;
+      } catch (e) {
+        console.warn('Could not refresh user data:', e.message);
+      }
+      
       const spotBal = currentUser.spotBalance || 0;
       const futuresBal = currentUser.futuresBalance || 0;
       const optionsBal = currentUser.optionsBalance || 0;

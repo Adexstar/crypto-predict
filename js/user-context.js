@@ -9,17 +9,26 @@ let cachedUser = null;
 export async function getRealUser() {
   try {
     // If already cached in this session, return it
-    if (cachedUser) {
+    if (cachedUser && cachedUser.spotBalance !== undefined) {
       return cachedUser;
     }
     
-    // Fetch from API
-    const response = await AuthAPI.verify();
-    cachedUser = response.user || response;
+    // First verify authentication
+    const authResponse = await AuthAPI.verify();
+    const authUser = authResponse.user || authResponse;
     
-    if (!cachedUser || !cachedUser.id) {
+    if (!authUser || !authUser.id) {
       // Not authenticated
       return null;
+    }
+    
+    // Then fetch full profile with all balance fields
+    try {
+      const profileResponse = await UserAPI.getProfile();
+      cachedUser = profileResponse.user || profileResponse;
+    } catch (error) {
+      console.warn('Could not fetch full profile, using auth data:', error.message);
+      cachedUser = authUser;
     }
     
     return cachedUser;
