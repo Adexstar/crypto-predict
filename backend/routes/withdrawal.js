@@ -37,10 +37,9 @@ router.post('/', async (req, res) => {
       data: {
         userId: req.user.id,
         amount,
-        status: 'PENDING'
-        // TODO: Enable after migration 20251227_add_deposit_withdrawal_fields runs
-        // ...(walletAddress && { walletAddress }),
-        // ...(network && { network })
+        status: 'PENDING',
+        walletAddress: walletAddress || null,
+        network: network || null
       }
     });
 

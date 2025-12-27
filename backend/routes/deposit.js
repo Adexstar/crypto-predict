@@ -21,15 +21,11 @@ router.post('/', async (req, res) => {
     const depositData = {
       userId: req.user.id,
       amount,
-      status: 'PENDING'
+      status: 'PENDING',
+      network: network || null,
+      asset: asset || null,
+      walletAddress: walletAddress || null
     };
-
-    // Store crypto transaction details (fields added by migration)
-    // TODO: Enable after migration 20251227_add_deposit_withdrawal_fields runs
-    // if (network) depositData.network = network;
-    // if (asset) depositData.asset = asset;
-    // if (walletAddress) depositData.walletAddress = walletAddress;
-    // if (amount) depositData.expiresAt = new Date(Date.now() + 30 * 60000);
 
     const deposit = await prisma.deposit.create({
       data: depositData

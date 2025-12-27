@@ -43,6 +43,7 @@ model User {
   history         History[]
   deposits        Deposit[]
   withdrawals     Withdrawal[]
+  transfers       Transfer[]
   supportTickets  SupportTicket[]
   
   @@index([email])
@@ -71,8 +72,14 @@ model Deposit {
   
   amount          Float
   status          String @default("PENDING")  // "PENDING", "CONFIRMED", "REJECTED"
+  network         String?
+  asset           String?
+  walletAddress   String?
   
   createdAt       DateTime @default(now())
+  confirmedAt     DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
   
   @@index([userId])
   @@index([status])
@@ -86,11 +93,31 @@ model Withdrawal {
   
   amount          Float
   status          String @default("PENDING")  // "PENDING", "APPROVED", "REJECTED", "COMPLETED"
+  network         String?
+  walletAddress   String?
+  
+  createdAt       DateTime @default(now())
+  approvedAt      DateTime?
+  completedAt     DateTime?
+  
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Transfer {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  fromAccount     String   // "spot", "futures", "options"
+  toAccount       String   // "spot", "futures", "options"
+  amount          Float
+  status          String @default("COMPLETED")
   
   createdAt       DateTime @default(now())
   
   @@index([userId])
-  @@index([status])
   @@index([createdAt])
 }
 
