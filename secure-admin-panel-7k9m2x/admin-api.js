@@ -109,6 +109,10 @@ window.rejectDeposit = async function(depositId, reason) {
   }
 };
 
+// Admin aliases for deposits (for use in renderDeposits)
+window.adminConfirmDeposit = window.confirmDeposit;
+window.adminRejectDeposit = window.rejectDeposit;
+
 // Withdrawal Management
 window.loadPendingWithdrawals = async function() {
   try {

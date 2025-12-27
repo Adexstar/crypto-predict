@@ -194,6 +194,10 @@
       <div class="nav-section">
         <div class="nav-section-title">Financial</div>
         <nav class="sidebar-nav">
+          <button type="button" class="nav-btn" onclick="switchPage('deposits')">
+            <span class="icon">📥</span>
+            <span>Deposits</span>
+          </button>
           <button type="button" class="nav-btn" onclick="switchPage('balance')">
             <span class="icon">💰</span>
             <span>Balance Control</span>
@@ -308,6 +312,12 @@
       <div id="freeze-page" class="admin-page">
         <h2>Freeze/Unfreeze Accounts</h2>
         <div id="freeze-list"></div>
+      </div>
+
+      <!-- Deposits Page -->
+      <div id="deposits-page" class="admin-page">
+        <h2>Pending Deposits</h2>
+        <div id="deposits-list"></div>
       </div>
 
       <!-- Withdrawals Page -->
@@ -576,6 +586,7 @@
         if (page === 'dashboard') await renderDashboard();
         else if (page === 'users') await renderUsers();
         else if (page === 'balance') await renderBalance();
+        else if (page === 'deposits') await renderDeposits();
         else if (page === 'freeze') await renderFreeze();
         else if (page === 'withdrawals') await renderWithdrawals();
         else if (page === 'profit') await renderProfit();
@@ -972,6 +983,58 @@
         }
       };
     }
+
+    async function renderDeposits() {
+      try {
+        await loadPendingDeposits(); // Load from API
+      } catch (error) {
+        console.error('Failed to load deposits:', error);
+        alert('Failed to load deposits');
+        return;
+      }
+      const list = document.getElementById('deposits-list');
+      const pending = adminState.deposits;
+      
+      if (!pending || pending.length === 0) {
+        list.innerHTML = '<div class="info-box">No pending deposits</div>';
+        return;
+      }
+      
+      list.innerHTML = pending.map(d => `
+        <div class="card">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+              <strong>${d.user ? d.user.name : 'Unknown'}</strong>
+              <div style="color: #a1a1a9;">Amount: $${d.amount.toFixed(2)}</div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Network: ${d.network || 'N/A'}</div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Wallet: ${d.walletAddress || 'N/A'}</div>
+              <div style="color: #a1a1a9; font-size: 0.85rem;">Date: ${new Date(d.createdAt).toLocaleString()}</div>
+            </div>
+            <div style="text-align: right;">
+              <button type="button" class="btn success" onclick="confirmDeposit('${d.id}', ${d.amount})">✅ CONFIRM</button>
+              <button type="button" class="btn danger" style="margin-left: 10px;" onclick="rejectDeposit('${d.id}')">❌ REJECT</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.confirmDeposit = async function(depositId, amount) {
+      const confirmAmount = parseFloat(prompt('Confirm deposit amount:', amount) || amount);
+      if (confirmAmount > 0 && await adminConfirmDeposit(depositId, confirmAmount)) {
+        await renderDeposits();
+        await renderDashboard();
+      }
+    };
+    
+    window.rejectDeposit = async function(depositId) {
+      const reason = prompt('Rejection reason:');
+      if (!reason) return;
+      if (await adminRejectDeposit(depositId, reason)) {
+        await renderDeposits();
+        await renderDashboard();
+      }
+    };
 
     async function renderWithdrawals() {
       try {
