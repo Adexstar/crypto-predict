@@ -37,11 +37,19 @@ router.post('/', async (req, res) => {
       data: {
         userId: req.user.id,
         amount,
-        status: 'PENDING',
-        // Store crypto withdrawal details
-        ...(walletAddress && { walletAddress }),
-        ...(network && { network })
+        status: 'PENDING'
+        // TODO: Enable after migration 20251227_add_deposit_withdrawal_fields runs
+        // ...(walletAddress && { walletAddress }),
+        // ...(network && { network })
       }
+    });
+
+    // Log the full submission details (even if not stored in DB yet)
+    console.log('📝 Withdrawal submitted:', {
+      withdrawalId: withdrawal.id,
+      amount,
+      network,
+      walletAddress
     });
 
     await prisma.history.create({
