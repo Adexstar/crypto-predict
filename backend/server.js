@@ -13,6 +13,7 @@ import adminRoutes from './routes/admin.js';
 import depositRoutes from './routes/deposit.js';
 import withdrawalRoutes from './routes/withdrawal.js';
 import transferRoutes from './routes/transfer.js';
+import aiRoutes from './routes/ai.js';
 import supportRoutes from './routes/support.js';
 import announcementRoutes from './routes/announcement.js';
 
@@ -78,6 +79,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/deposits', depositRoutes);
 app.use('/api/withdrawals', withdrawalRoutes);
 app.use('/api/transfers', transferRoutes);
+app.use('/api/ai', aiRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/announcements', announcementRoutes);
 
