@@ -77,23 +77,6 @@ router.post('/subscribe', async (req, res) => {
       }
     });
 
-    // Audit log
-    await prisma.auditLog.create({
-      data: {
-        action: 'ai_subscription',
-        targetId: req.user.id,
-        performedBy: req.user.email,
-        details: JSON.stringify({
-          amount,
-          profit,
-          strategy,
-          positionSize,
-          stopLoss,
-          takeProfit
-        })
-      }
-    });
-
     console.log('✅ AI subscription activated:', {
       userId: req.user.id,
       subscriptionAmount: amount,
