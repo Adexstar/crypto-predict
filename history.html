@@ -43,6 +43,7 @@
     import { getRealUser } from './js/user-context.js';
 
     let currentUser = null;
+    let allHistory = [];
 
     async function loadUser() {
       currentUser = await getRealUser();
@@ -51,7 +52,26 @@
         return;
       }
       renderHeader();
-      renderHistory();
+      await fetchHistory();
+    }
+
+    async function fetchHistory() {
+      try {
+        const response = await fetch(`${API_CONFIG.API_URL}/user/history`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch history');
+        
+        const data = await response.json();
+        allHistory = data.history || [];
+        renderHistory('');
+      } catch (error) {
+        console.error('Error fetching history:', error);
+        document.getElementById('history-list').innerHTML = '<p class="small" style="color:#d03030">❌ Failed to load history</p>';
+      }
     }
 
     function renderHeader() {
@@ -66,32 +86,51 @@
         </div>`;
     }
 
+    function getActionLabel(action) {
+      if (action.includes('deposit')) return 'Deposit';
+      if (action.includes('withdraw')) return 'Withdrawal';
+      if (action.includes('transfer')) return 'Transfer';
+      if (action.includes('ai.subscription')) return 'AI Subscription';
+      if (action.includes('ai.profit')) return 'AI Profit';
+      return action.replace(/\./g, ' ').toUpperCase();
+    }
+
     function renderHistory(filter = '') {
-      if (!currentUser) return;
       const list = document.getElementById('history-list');
       
-      let history = currentUser.history || [];
+      let filtered = allHistory;
       if (filter) {
-        history = history.filter(h => h.action.includes(filter));
+        // Map filter values to action patterns
+        const filterMap = {
+          'deposit': 'deposit',
+          'withdraw': 'withdraw',
+          'transfer': 'transfer',
+          'subscribe': 'ai.subscription',
+          'profit': 'ai.profit'
+        };
+        const pattern = filterMap[filter];
+        if (pattern) {
+          filtered = allHistory.filter(h => h.action && h.action.includes(pattern));
+        }
       }
 
-      if (history.length === 0) {
+      if (filtered.length === 0) {
         list.innerHTML = '<p class="small">No transactions</p>';
         return;
       }
 
-      list.innerHTML = history.map((h, idx) => {
-        const message = h.message || h.action.replace(/\./g, ' ').toUpperCase();
-        const time = new Date(h.ts).toLocaleString();
+      list.innerHTML = filtered.map((h, idx) => {
+        const message = h.message || getActionLabel(h.action);
+        const time = new Date(h.createdAt).toLocaleString();
         return `
           <div class="card" style="padding:12px;background:${idx % 2 === 0 ? '#fff' : '#f8f8f8'}">
             <div class="kv">
               <div>
                 <strong>${message}</strong>
-                <div class="small">${time}</div>
+                <div class="small">${h.action}</div>
               </div>
               <div style="text-align:right">
-                <div class="small">${new Date(h.ts).toLocaleString()}</div>
+                <div class="small">${time}</div>
               </div>
             </div>
           </div>
