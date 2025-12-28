@@ -72,7 +72,7 @@ model Deposit {
   
   amount          Float
   status          String @default("PENDING")  // "PENDING", "CONFIRMED", "REJECTED"
-  method          String @default("CRYPTO")   // e.g., "CRYPTO", "BANK"
+  method          String?  // Default provided by database
   network         String?
   asset           String?
   walletAddress   String?

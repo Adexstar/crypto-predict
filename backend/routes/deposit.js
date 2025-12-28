@@ -20,11 +20,8 @@ router.post('/', async (req, res) => {
     const depositData = {
       userId: req.user.id,
       amount,
-      status: 'PENDING',
-      method: method || 'CRYPTO',
-      network: network || null,
-      asset: asset || null,
-      walletAddress: walletAddress || null
+      status: 'PENDING'
+      // method defaults to 'CRYPTO' in database if not provided
     };
 
     const deposit = await prisma.deposit.create({
