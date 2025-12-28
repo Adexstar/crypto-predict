@@ -79,7 +79,7 @@
         <h3 style="margin-top:30px;margin-bottom:15px">AI Bot Subscription</h3>
         <div class="form-group">
           <label>Subscription Amount (USD)</label>
-          <input type="number" id="ai-sub-amt" class="input" placeholder="Min: $30, Max: $3,000" min="30" max="3000">
+          <input type="number" id="ai-sub-amt" class="input" placeholder="Min: $100, Max: $10,000" min="100" max="10000">
           <div class="small" style="margin-top:8px;color:#f59e0b">
             💡 The AI bot will use this amount for automated trading operations
           </div>
@@ -94,7 +94,7 @@
             <div class="small">✅ Real-time Market Analysis</div>
             <div class="small">✅ Risk Management Controls</div>
             <div class="small">✅ Multi-asset Portfolio Optimization</div>
-            <div class="small">✅ Profit Cycle Execution (0.15% estimated return)</div>
+            <div class="small">✅ Profit Cycle Execution (0.50% estimated return)</div>
           </div>
         </div>
 
@@ -257,11 +257,22 @@
           })
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to subscribe');
+          let errorMsg = 'Failed to subscribe';
+          try {
+            const data = await response.json();
+            errorMsg = data.error || errorMsg;
+          } catch (e) {
+            if (response.status === 404) {
+              errorMsg = 'AI subscription service not yet deployed. Please wait a moment and try again.';
+            } else if (response.status === 401) {
+              errorMsg = 'Please login first';
+            }
+          }
+          throw new Error(errorMsg);
         }
+
+        const data = await response.json();
 
         // Update local user data
         currentUser = data.user;
