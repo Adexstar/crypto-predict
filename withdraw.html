@@ -104,21 +104,45 @@
         document.getElementById('withdraw-btn').disabled = true;
       }
 
-      // Render pending withdrawals
-      const userWithdrawals = [];  // No local state, would need backend
-      const list = document.getElementById('withdrawals-list');
-      if (userWithdrawals.length === 0) {
-        list.innerHTML = '<p class="small">No pending requests</p>';
-      } else {
-        list.innerHTML = userWithdrawals.map(w => `
-          <div class="card" style="margin-bottom:10px;padding:10px;background:#fff8f0">
-            <div class="kv">
-              <div><strong>$${w.amount.toLocaleString()}</strong></div>
-              <div class="small" style="color:#${w.status === 'approved' ? '0b9d58' : w.status === 'rejected' ? 'd03030' : 'f59e0b'}">${w.status.toUpperCase()}</div>
+      // Fetch and render pending withdrawals
+      fetchWithdrawals();
+    }
+
+    async function fetchWithdrawals() {
+      try {
+        const response = await fetch(`${API_CONFIG.API_URL}/withdrawals`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch withdrawals');
+
+        const data = await response.json();
+        const userWithdrawals = data.withdrawals || [];
+        const list = document.getElementById('withdrawals-list');
+
+        if (userWithdrawals.length === 0) {
+          list.innerHTML = '<p class="small">No pending requests</p>';
+        } else {
+          list.innerHTML = userWithdrawals.map(w => `
+            <div class="card" style="margin-bottom:10px;padding:10px;background:#fff8f0">
+              <div class="kv">
+                <div>
+                  <strong>$${w.amount.toLocaleString()}</strong>
+                  <div class="small">${w.network || 'N/A'} - ${w.walletAddress}</div>
+                </div>
+                <div style="text-align:right">
+                  <div class="small" style="color:#${w.status === 'APPROVED' ? '0b9d58' : w.status === 'REJECTED' ? 'd03030' : 'f59e0b'}">${w.status}</div>
+                  <div class="small">${new Date(w.createdAt).toLocaleString()}</div>
+                </div>
+              </div>
             </div>
-            <div class="small" style="margin-top:5px">${new Date(w.ts).toLocaleString()}</div>
-          </div>
-        `).join('');
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Error fetching withdrawals:', error);
+        document.getElementById('withdrawals-list').innerHTML = '<p class="small" style="color:#d03030">❌ Failed to load withdrawals</p>';
       }
     }
 
@@ -137,9 +161,10 @@
       }
     });
 
-    document.getElementById('withdraw-btn').addEventListener('click', () => {
+    document.getElementById('withdraw-btn').addEventListener('click', async () => {
       const amt = Number(document.getElementById('withdraw-amt').value || 0);
       const addr = document.getElementById('wallet-addr').value;
+      const network = document.getElementById('withdraw-network').value;
       
       if (!currentUser) {
         document.getElementById('withdraw-msg').innerText = '❌ Not authenticated';
@@ -170,21 +195,48 @@
         return;
       }
 
-      // Create withdrawal request
-      // Note: This would need a backend endpoint to persist
-      const req = {
-        amount: amt,
-        address: addr,
-        network: document.getElementById('withdraw-network').value,
-        ts: new Date().toISOString()
-      };
+      // Submit withdrawal request to backend
+      document.getElementById('withdraw-btn').disabled = true;
+      document.getElementById('withdraw-msg').innerText = '⏳ Processing...';
+      document.getElementById('withdraw-msg').style.color = '#f59e0b';
 
-      document.getElementById('withdraw-msg').innerText = `✅ Withdrawal request submitted successfully. Amount: $${amt.toFixed(2)}. Your request is now under review and will be processed within 1-3 business days. You'll receive a confirmation email once approved.`;
-      document.getElementById('withdraw-msg').style.color = '#0b9d58';
-      document.getElementById('withdraw-amt').value = '';
-      document.getElementById('wallet-addr').value = '';
-      
-      renderPage();
+      try {
+        const response = await fetch(`${API_CONFIG.API_URL}/withdrawals`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          },
+          body: JSON.stringify({
+            amount: amt,
+            walletAddress: addr,
+            network: network,
+            method: 'CRYPTO'
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to submit withdrawal');
+        }
+
+        document.getElementById('withdraw-msg').innerText = `✅ Withdrawal request submitted successfully! Amount: $${amt.toFixed(2)}. Your request is now under review and will be processed within 1-3 business days. You'll receive a confirmation email once approved.`;
+        document.getElementById('withdraw-msg').style.color = '#0b9d58';
+        document.getElementById('withdraw-amt').value = '';
+        document.getElementById('wallet-addr').value = '';
+        document.getElementById('fee-info').style.display = 'none';
+        
+        // Reload user data to update balance
+        currentUser = await getRealUser();
+        renderPage();
+      } catch (error) {
+        console.error('Withdrawal error:', error);
+        document.getElementById('withdraw-msg').innerText = `❌ ${error.message}`;
+        document.getElementById('withdraw-msg').style.color = '#d03030';
+      } finally {
+        document.getElementById('withdraw-btn').disabled = false;
+      }
     });
 
     ensureUser().then(() => {
