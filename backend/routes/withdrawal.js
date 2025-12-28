@@ -114,13 +114,17 @@ router.get('/pending', authenticate, async (req, res) => {
 
   try {
     console.log('✅ Admin verified, fetching withdrawals...');
-    // Query only columns that exist in the current database schema
+    // Query all fields from the withdrawal
     const withdrawals = await prisma.withdrawal.findMany({
       where: { status: 'PENDING' },
       select: {
         id: true,
         userId: true,
         amount: true,
+        method: true,
+        network: true,
+        walletAddress: true,
+        details: true,
         status: true,
         createdAt: true,
       },
