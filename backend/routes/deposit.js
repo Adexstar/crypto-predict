@@ -11,7 +11,7 @@ router.use(authenticate);
 // Submit deposit
 router.post('/', async (req, res) => {
   try {
-    const { amount, network, asset, walletAddress } = req.body;
+    const { amount, network, asset, walletAddress, method } = req.body;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ error: 'Invalid amount' });
@@ -21,6 +21,7 @@ router.post('/', async (req, res) => {
       userId: req.user.id,
       amount,
       status: 'PENDING',
+      method: method || 'CRYPTO',
       network: network || null,
       asset: asset || null,
       walletAddress: walletAddress || null
@@ -72,6 +73,7 @@ router.get('/', async (req, res) => {
         userId: true,
         amount: true,
         status: true,
+        method: true,
         network: true,
         asset: true,
         walletAddress: true,
