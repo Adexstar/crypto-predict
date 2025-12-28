@@ -110,7 +110,7 @@
 
       // Load transfers from API
       try {
-        const response = await fetch('/api/transfers', {
+        const response = await fetch(`${API_CONFIG.API_URL}/transfers`, {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
         });
@@ -174,7 +174,7 @@
         msgEl.innerText = '⏳ Processing transfer...';
         msgEl.style.color = '#f0ad4e';
         
-        const response = await fetch('/api/transfers', {
+        const response = await fetch(`${API_CONFIG.API_URL}/transfers`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
