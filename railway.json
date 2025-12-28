@@ -5,7 +5,7 @@
     "buildCommand": "cd backend && npm install && npx prisma generate"
   },
   "deploy": {
-    "startCommand": "cd backend && npx prisma migrate deploy --skip-generate || true; node scripts/verify-schema.js && npm start",
+    "startCommand": "cd backend && npx prisma migrate resolve --applied 20251224_init 2>/dev/null ; npx prisma migrate deploy ; node scripts/verify-schema.js && npm start",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
