@@ -11,7 +11,7 @@ router.use(authenticate);
 // Submit withdrawal
 router.post('/', async (req, res) => {
   try {
-    const { amount, walletAddress, network } = req.body;
+    const { amount, walletAddress, network, method, details } = req.body;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ error: 'Invalid amount' });
@@ -37,16 +37,19 @@ router.post('/', async (req, res) => {
       data: {
         userId: req.user.id,
         amount,
-        status: 'PENDING',
+        method: method || 'CRYPTO',
         walletAddress: walletAddress || null,
-        network: network || null
+        network: network || null,
+        details: details || null,
+        status: 'PENDING'
       }
     });
 
-    // Log the full submission details (even if not stored in DB yet)
+    // Log the submission details
     console.log('📝 Withdrawal submitted:', {
       withdrawalId: withdrawal.id,
       amount,
+      method: withdrawal.method,
       network,
       walletAddress
     });
@@ -56,7 +59,8 @@ router.post('/', async (req, res) => {
         userId: req.user.id,
         ...createHistoryEntry('withdraw.request', { 
           id: withdrawal.id, 
-          amount 
+          amount,
+          method: withdrawal.method
         })
       }
     });

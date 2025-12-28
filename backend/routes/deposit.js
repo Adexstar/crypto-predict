@@ -11,7 +11,7 @@ router.use(authenticate);
 // Submit deposit
 router.post('/', async (req, res) => {
   try {
-    const { amount, network, asset, walletAddress, method } = req.body;
+    const { amount, network, asset, walletAddress, method, details } = req.body;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ error: 'Invalid amount' });
@@ -20,18 +20,23 @@ router.post('/', async (req, res) => {
     const depositData = {
       userId: req.user.id,
       amount,
+      method: method || 'CRYPTO',
+      network: network || null,
+      asset: asset || null,
+      walletAddress: walletAddress || null,
+      details: details || null,
       status: 'PENDING'
-      // method defaults to 'CRYPTO' in database if not provided
     };
 
     const deposit = await prisma.deposit.create({
       data: depositData
     });
 
-    // Log the full submission details (even if not stored in DB yet)
+    // Log the submission details
     console.log('📝 Deposit submitted:', {
       depositId: deposit.id,
       amount,
+      method: deposit.method,
       network,
       asset,
       walletAddress
@@ -43,6 +48,7 @@ router.post('/', async (req, res) => {
         ...createHistoryEntry('deposit.submitted', { 
           id: deposit.id, 
           amount, 
+          method: deposit.method,
           network, 
           asset 
         })
