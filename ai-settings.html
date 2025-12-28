@@ -242,7 +242,7 @@
       msg.innerHTML = '<span style="color:#f0ad4e">⏳ Activating AI Bot...</span>';
 
       try {
-        const response = await fetch('/api/ai/subscribe', {
+        const response = await fetch(`${API_CONFIG.API_URL}/ai/subscribe`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
