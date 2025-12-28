@@ -143,11 +143,24 @@
     function loadAISettings() {
       if (!currentUser) return;
       
-      // Check if user has active AI subscription
-      if (currentUser.aiSubscription && currentUser.aiSubscription.active) {
+      // Check if user has active AI subscription by looking at history
+      const aiSubHistory = (currentUser.history || []).find(h => h.action === 'ai.subscription');
+      
+      if (aiSubHistory) {
         document.getElementById('bot-status').innerHTML = '● ACTIVE';
         document.getElementById('bot-status').style.color = '#0b9d58';
-        document.getElementById('sub-amount').textContent = '$' + (currentUser.aiSubscription.amount || 0).toLocaleString();
+        
+        // Parse the meta to get the subscription amount
+        let subAmount = 0;
+        if (aiSubHistory.meta) {
+          try {
+            const meta = typeof aiSubHistory.meta === 'string' ? JSON.parse(aiSubHistory.meta) : aiSubHistory.meta;
+            subAmount = meta.subscriptionAmount || 0;
+          } catch (e) {
+            subAmount = 0;
+          }
+        }
+        document.getElementById('sub-amount').textContent = '$' + subAmount.toLocaleString();
       } else {
         document.getElementById('bot-status').innerHTML = '○ INACTIVE';
         document.getElementById('bot-status').style.color = '#d03030';
