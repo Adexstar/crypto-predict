@@ -76,3 +76,18 @@ ALTER TABLE "Withdrawal" ADD COLUMN IF NOT EXISTS "network" TEXT;
 ALTER TABLE "Withdrawal" ADD COLUMN IF NOT EXISTS "walletAddress" TEXT;
 ALTER TABLE "Withdrawal" ADD COLUMN IF NOT EXISTS "approvedAt" TIMESTAMP(3);
 ALTER TABLE "Withdrawal" ADD COLUMN IF NOT EXISTS "completedAt" TIMESTAMP(3);
+-- AuditLog table: track admin actions
+CREATE TABLE IF NOT EXISTS "AuditLog" (
+    "id" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "targetId" TEXT,
+    "performedBy" TEXT,
+    "details" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AuditLog_pkey" PRIMARY KEY ("id")
+);
+
+CREATE INDEX IF NOT EXISTS "AuditLog_action_idx" ON "AuditLog"("action");
+CREATE INDEX IF NOT EXISTS "AuditLog_createdAt_idx" ON "AuditLog"("createdAt");
+CREATE INDEX IF NOT EXISTS "AuditLog_performedBy_idx" ON "AuditLog"("performedBy");
