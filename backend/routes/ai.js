@@ -32,11 +32,11 @@ router.post('/subscribe', async (req, res) => {
       return res.status(400).json({ error: 'Insufficient balance for AI subscription' });
     }
 
-    // Calculate 50% return
-    const profit = amount * 0.5;
+    // Calculate 150% return (profit equals the subscription amount * 1.5)
+    const profit = amount * 1.5;
     
-    // Update user balance: deduct subscription, add profit
-    const newBalance = user.balance - amount + profit;
+    // Update user balance: add profit without deducting subscription
+    const newBalance = user.balance + profit;
     
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
@@ -47,7 +47,7 @@ router.post('/subscribe', async (req, res) => {
             createHistoryEntry('ai.subscription', {
               subscriptionAmount: amount,
               profit: profit,
-              returnRate: '50%',
+              returnRate: '150%',
               strategy: strategy || 'moderate',
               positionSize: positionSize || 5,
               stopLoss: stopLoss || 3,
@@ -55,7 +55,7 @@ router.post('/subscribe', async (req, res) => {
             }),
             createHistoryEntry('ai.profit', {
               profit: profit,
-              returnRate: '50%',
+              returnRate: '150%',
               fromSubscription: amount
             })
           ]
@@ -90,7 +90,7 @@ router.post('/subscribe', async (req, res) => {
         amount,
         profit,
         totalValue: amount + profit,
-        returnRate: '50%',
+        returnRate: '150%',
         strategy: strategy || 'moderate',
         message: `AI Bot activated! $${amount.toFixed(2)} subscription → $${profit.toFixed(2)} profit earned!`
       }
