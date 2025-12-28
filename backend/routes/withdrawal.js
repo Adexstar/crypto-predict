@@ -194,16 +194,6 @@ router.post('/:withdrawalId/approve', authenticate, async (req, res) => {
       return [wd, usr];
     });
 
-    // Audit log
-    await prisma.auditLog.create({
-      data: {
-        action: 'approve_withdrawal',
-        targetId: withdrawal.userId,
-        performedBy: req.user.email,
-        details: JSON.stringify({ withdrawalId, amount: withdrawal.amount })
-      }
-    });
-
     res.json({ 
       withdrawal: updatedWithdrawal, 
       message: 'Withdrawal approved successfully' 
@@ -239,15 +229,6 @@ router.post('/:withdrawalId/reject', authenticate, async (req, res) => {
         ...createHistoryEntry('withdraw.rejected', { 
           id: withdrawalId 
         })
-      }
-    });
-
-    await prisma.auditLog.create({
-      data: {
-        action: 'reject_withdrawal',
-        targetId: withdrawal.userId,
-        performedBy: req.user.email,
-        details: JSON.stringify({ withdrawalId, reason })
       }
     });
 

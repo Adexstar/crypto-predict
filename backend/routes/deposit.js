@@ -187,16 +187,6 @@ router.post('/:depositId/confirm', authenticate, async (req, res) => {
       return [dep, usr];
     });
 
-    // Audit log
-    await prisma.auditLog.create({
-      data: {
-        action: 'confirm_deposit',
-        targetId: deposit.userId,
-        performedBy: req.user.email,
-        details: JSON.stringify({ depositId, amount: depositAmount })
-      }
-    });
-
     res.json({ 
       deposit: updatedDeposit, 
       message: 'Deposit confirmed successfully' 
@@ -233,15 +223,6 @@ router.post('/:depositId/reject', authenticate, async (req, res) => {
           id: depositId, 
           reason 
         })
-      }
-    });
-
-    await prisma.auditLog.create({
-      data: {
-        action: 'reject_deposit',
-        targetId: deposit.userId,
-        performedBy: req.user.email,
-        details: JSON.stringify({ depositId, reason })
       }
     });
 

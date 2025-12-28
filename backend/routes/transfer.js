@@ -66,16 +66,6 @@ router.post('/', async (req, res) => {
       }
     });
 
-    // Audit log
-    await prisma.auditLog.create({
-      data: {
-        action: 'transfer',
-        targetId: req.user.id,
-        performedBy: req.user.email,
-        details: JSON.stringify({ from: fromAccount, to: toAccount, amount })
-      }
-    });
-
     res.status(201).json({
       user: updatedUser,
       message: `Transfer of $${amount.toFixed(2)} from ${fromAccount} to ${toAccount} completed successfully`
