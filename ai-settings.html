@@ -19,7 +19,7 @@
       <p class="card-subtitle">Configure your automated trading assistant</p>
       
       <div style="margin-top:30px">
-        <!-- Current Status -->
+        <!-- Current Status & Balances -->
         <div id="ai-status-card" style="background:#f5f5f5;padding:20px;border-radius:8px;margin-bottom:30px">
           <div class="kv">
             <div>
@@ -29,6 +29,22 @@
             <div style="text-align:right">
               <div style="font-size:14px;color:#666;margin-bottom:5px">Subscription Amount</div>
               <div id="sub-amount" style="font-size:18px;font-weight:700">$0.00</div>
+            </div>
+          </div>
+          
+          <!-- Balance Display -->
+          <div style="margin-top:15px;border-top:1px solid #ddd;padding-top:15px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
+              <div>
+                <div style="font-size:12px;color:#666;margin-bottom:5px">Testing Balance</div>
+                <div style="font-size:16px;font-weight:600;color:#f59e0b">$<span id="testing-balance">0.00</span></div>
+                <div style="font-size:11px;color:#999;margin-top:3px">10% return (max $500, 2x/day)</div>
+              </div>
+              <div>
+                <div style="font-size:12px;color:#666;margin-bottom:5px">Deposited Balance</div>
+                <div style="font-size:16px;font-weight:600;color:#0b9d58">$<span id="deposited-balance">0.00</span></div>
+                <div style="font-size:11px;color:#999;margin-top:3px">150% return (max $10k, 1x/day)</div>
+              </div>
             </div>
           </div>
         </div>
@@ -77,11 +93,21 @@
 
         <!-- Subscription Section -->
         <h3 style="margin-top:30px;margin-bottom:15px">AI Bot Subscription</h3>
+        
+        <!-- Balance Type Info -->
+        <div style="background:#e8f4f8;padding:15px;border-radius:8px;margin-bottom:20px;border-left:4px solid #0b9d58">
+          <div style="font-weight:600;margin-bottom:10px">💡 How to Subscribe:</div>
+          <div style="font-size:13px;line-height:1.6;color:#333">
+            <div style="margin-bottom:8px"><strong>Testing Balance ($100-$500):</strong> Earn 10% profit. Limited to 2 subscriptions per day. Use this to test strategies.</div>
+            <div><strong>Deposited Balance ($100-$10,000):</strong> Earn 150% profit. Limited to 1 subscription per day. Make a deposit and have admin approve it to use this.</div>
+          </div>
+        </div>
+        
         <div class="form-group">
           <label>Subscription Amount (USD)</label>
-          <input type="number" id="ai-sub-amt" class="input" placeholder="Min: $100, Max: $10,000" min="100" max="10000">
+          <input type="number" id="ai-sub-amt" class="input" placeholder="Testing: $100-$500 OR Deposited: $100-$10,000" min="100" max="10000">
           <div class="small" style="margin-top:8px;color:#f59e0b">
-            💡 The AI bot will use this amount for automated trading operations
+            💡 System will automatically use Testing Balance first (if available), then Deposited Balance
           </div>
         </div>
 
@@ -94,7 +120,7 @@
             <div class="small">✅ Real-time Market Analysis</div>
             <div class="small">✅ Risk Management Controls</div>
             <div class="small">✅ Multi-asset Portfolio Optimization</div>
-            <div class="small">✅ Profit Cycle Execution (1.50x estimated return)</div>
+            <div class="small">✅ Separate returns: 10% (testing) / 150% (deposited)</div>
           </div>
         </div>
 
@@ -142,6 +168,13 @@
 
     function loadAISettings() {
       if (!currentUser) return;
+      
+      // Display balances
+      const testingBal = currentUser.testingBalance || 0;
+      const depositedBal = currentUser.balance || 0;
+      
+      document.getElementById('testing-balance').textContent = testingBal.toLocaleString(undefined, {minimumFractionDigits:2});
+      document.getElementById('deposited-balance').textContent = depositedBal.toLocaleString(undefined, {minimumFractionDigits:2});
       
       // Check if user has active AI subscription by looking at history
       const aiSubHistory = (currentUser.history || []).find(h => h.action === 'ai.subscription');
@@ -199,7 +232,9 @@
           ${aiHistory.slice(0, 10).map(h => {
             const meta = typeof h.meta === 'string' ? JSON.parse(h.meta) : h.meta;
             const amount = meta?.profit || meta?.amount || meta?.subscriptionAmount || 0;
-            const actionLabel = h.action === 'ai.subscribed' ? 'Subscription Activated' : 
+            const subType = meta?.subscriptionType || 'unknown';
+            const fundLabel = subType === 'testing' ? '(Testing - 10%)' : '(Deposited - 150%)';
+            const actionLabel = h.action === 'ai.subscription' ? `Subscription ${fundLabel}` : 
                                h.action === 'ai.profit' ? 'Profit Earned' : h.action.toUpperCase();
             return `
               <div class="card" style="padding:12px;border-left:4px solid #f0ad4e;">
@@ -239,14 +274,36 @@
       const msg = document.getElementById('ai-msg');
       const btn = document.getElementById('subscribe-btn');
 
-      // Validate amount: $100 - $10,000
-      if (amt < 100 || amt > 10000) {
-        msg.innerHTML = '<span style="color:#d03030">❌ Invalid amount. Must be between $100 and $10,000.</span>';
-        return;
-      }
+      const testingBal = currentUser.testingBalance || 0;
+      const depositedBal = currentUser.balance || 0;
 
-      if (amt > currentUser.balance) {
-        msg.innerHTML = '<span style="color:#d03030">❌ Insufficient balance. Please deposit funds first.</span>';
+      // Validate amount and determine subscription type
+      let subscriptionType = null;
+      let returnRate = null;
+      let maxDaily = null;
+      
+      // Check if amount fits testing balance criteria ($100-$500)
+      if (amt >= 100 && amt <= 500 && testingBal >= amt) {
+        subscriptionType = 'testing';
+        returnRate = 0.10; // 10%
+        maxDaily = 2;
+      } 
+      // Check if amount fits real deposit criteria ($100-$10,000)
+      else if (amt >= 100 && amt <= 10000 && depositedBal >= amt) {
+        subscriptionType = 'deposited';
+        returnRate = 1.50; // 150%
+        maxDaily = 1;
+      }
+      
+      // Validate and show appropriate error
+      if (!subscriptionType) {
+        if (amt < 100 || amt > 10000) {
+          msg.innerHTML = '<span style="color:#d03030">❌ Invalid amount. Testing: $100-$500 (2x daily). Deposited: $100-$10,000 (1x daily).</span>';
+        } else if (testingBal < amt && depositedBal < amt) {
+          msg.innerHTML = '<span style="color:#d03030">❌ Insufficient balance. Testing Balance: $' + testingBal.toFixed(2) + ', Deposited Balance: $' + depositedBal.toFixed(2) + '</span>';
+        } else {
+          msg.innerHTML = '<span style="color:#d03030">❌ Invalid subscription amount for available balances.</span>';
+        }
         return;
       }
 
@@ -286,11 +343,16 @@
         }
 
         const data = await response.json();
+        const sub = data.subscription;
 
         // Update local user data
         currentUser = data.user;
 
-        msg.innerHTML = `<span style="color:#0b9d58">✅ AI Bot activated!<br>Subscription: $${data.subscription.amount.toFixed(2)}<br>Profit earned: $${data.subscription.profit.toFixed(2)}</span>`;
+        const fundType = sub.subscriptionType === 'testing' 
+          ? 'Testing Funds (10% return)' 
+          : 'Deposited Funds (150% return)';
+
+        msg.innerHTML = `<span style="color:#0b9d58">✅ AI Bot activated! (${fundType})<br>Subscription: $${sub.amount.toFixed(2)}<br>Profit earned: $${sub.profit.toFixed(2)}</span>`;
         
         document.getElementById('ai-sub-amt').value = '';
         loadAISettings();

@@ -153,17 +153,19 @@ router.post('/register',
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // Update user with complete registration + initialize balances
-      // Total: $10,000 | Spot: $5,000 | Futures: $2,500 | Options: $2,500
+      // Testing Balance: $2,000 (AI Bot testing with limits)
+      // Trading Balance: $0 (requires deposits from admin approval)
       const user = await prisma.user.update({
         where: { id: existing.id },
         data: {
           password: hashedPassword,
           name: name || email.split('@')[0],
           emailVerified: true, // Verified immediately since they used the code
-          balance: 10000,
-          spotBalance: 5000,
-          futuresBalance: 2500,
-          optionsBalance: 2500,
+          balance: 0,
+          spotBalance: 0,
+          futuresBalance: 0,
+          optionsBalance: 0,
+          testingBalance: 2000,  // AI Bot testing funds
           verificationCode: null,
           verificationCodeExpires: null,
           pendingRegistration: false,
@@ -180,6 +182,7 @@ router.post('/register',
           spotBalance: true,
           futuresBalance: true,
           optionsBalance: true,
+          testingBalance: true,
           kyc: true,
           vip: true,
           emailVerified: true,
@@ -274,6 +277,7 @@ router.post('/login',
           name: user.name,
           role: user.role,
           balance: user.balance,
+          testingBalance: user.testingBalance,
           spotBalance: user.spotBalance,
           futuresBalance: user.futuresBalance,
           optionsBalance: user.optionsBalance,
@@ -323,6 +327,7 @@ router.get('/verify', async (req, res) => {
         name: true,
         role: true,
         balance: true,
+        testingBalance: true,
         frozen: true,
       }
     });

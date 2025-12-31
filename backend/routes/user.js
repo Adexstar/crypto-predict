@@ -16,6 +16,7 @@ router.get('/profile', authenticate, async (req, res) => {
         name: true,
         role: true,
         balance: true,
+        testingBalance: true,
         spotBalance: true,
         futuresBalance: true,
         optionsBalance: true,

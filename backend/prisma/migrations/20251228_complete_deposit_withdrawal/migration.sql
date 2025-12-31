@@ -76,6 +76,12 @@ ALTER TABLE "Withdrawal" ADD COLUMN IF NOT EXISTS "network" TEXT;
 ALTER TABLE "Withdrawal" ADD COLUMN IF NOT EXISTS "walletAddress" TEXT;
 ALTER TABLE "Withdrawal" ADD COLUMN IF NOT EXISTS "approvedAt" TIMESTAMP(3);
 ALTER TABLE "Withdrawal" ADD COLUMN IF NOT EXISTS "completedAt" TIMESTAMP(3);
+
+-- Add AI Bot testing balance and subscription tracking columns
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "testingBalance" DOUBLE PRECISION NOT NULL DEFAULT 2000;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "lastAISubDate" TIMESTAMP(3);
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "aiSubCount" INTEGER NOT NULL DEFAULT 0;
+
 -- AuditLog table: track admin actions
 CREATE TABLE IF NOT EXISTS "AuditLog" (
     "id" TEXT NOT NULL,
