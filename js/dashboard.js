@@ -66,7 +66,14 @@ class MockDataEngine {
       'ETH': 2250,
       'BNB': 380,
       'XRP': 2.15,
-      'SOL': 95
+      'SOL': 95,
+      'ADA': 0.95,
+      'DOT': 7.50,
+      'DOGE': 0.32,
+      'LINK': 28.45,
+      'MATIC': 0.85,
+      'LTC': 150.00,
+      'AVAX': 42.50
     };
     this.priceHistory = {};
     this.initializeHistory();
@@ -148,7 +155,7 @@ function renderPriceTicker() {
   const ticker = $('price-ticker');
   if (!ticker) return;
 
-  const symbols = ['BTC', 'ETH', 'BNB', 'XRP', 'SOL'];
+  const symbols = ['BTC', 'ETH', 'BNB', 'XRP', 'SOL', 'ADA', 'DOT', 'DOGE', 'LINK', 'MATIC', 'LTC', 'AVAX'];
   ticker.innerHTML = symbols.map(symbol => {
     const price = mockData.generatePrice(symbol);
     const change = mockData.getPriceChange(symbol);
