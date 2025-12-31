@@ -136,10 +136,17 @@ router.post('/subscribe', async (req, res) => {
       }
     };
 
-    // Deduct from appropriate balance and add profit
+    // Update balance logic:
+    // - Testing balance: User keeps the $X they subscribe + gets profit (net gain = profit only)
+    //   Example: testingBalance $2000, sub $100 → testingBalance becomes $2010 (keep $100 + $10 profit)
+    // - Real balance: User invests the $X and gets profit (net loss = -amount + profit)
+    //   Example: balance $5000, sub $1000 → balance becomes $4500 + $1500 = $5500 (net +$500)
+    
     if (isTestingBalance) {
-      updateData.testingBalance = user.testingBalance - amount + profit;
+      // Testing: Only add the profit, user keeps the subscription amount
+      updateData.testingBalance = user.testingBalance + profit;
     } else {
+      // Real: Deduct subscription amount and add profit
       updateData.balance = user.balance - amount + profit;
     }
 

@@ -328,24 +328,29 @@ function renderAccountStats() {
   const statsContainer = $('account-stats');
   if (!statsContainer) return;
 
-  const totalBalance = user.balance || 10000;
+  // Use testing balance if available, otherwise use actual balance
+  const testingBalance = user.testingBalance !== undefined ? user.testingBalance : 0;
+  const depositedBalance = user.balance || 0;
+  const totalBalance = testingBalance + depositedBalance;
   const change24h = ((Math.random() - 0.5) * 5).toFixed(2);
 
   statsContainer.innerHTML = `
     <div class="stat-box">
-      <div class="stat-label">Total Balance</div>
+      <div class="stat-label">Testing Balance</div>
+      <div class="stat-value">$${testingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+      <div class="stat-change">AI Bot Testing (10% profit)</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Deposited Balance</div>
+      <div class="stat-value">$${depositedBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+      <div class="stat-change">Real Funds (150% profit)</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Total Account Value</div>
       <div class="stat-value">$${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
       <div class="stat-change ${change24h >= 0 ? 'positive' : 'negative'}">
         ${change24h >= 0 ? '+' : ''}${change24h}% (24h)
       </div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-label">Available</div>
-      <div class="stat-value">$${(totalBalance * 0.85).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-label">In Orders</div>
-      <div class="stat-value">$${(totalBalance * 0.15).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
     </div>
   `;
 }
