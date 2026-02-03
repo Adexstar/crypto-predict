@@ -12,8 +12,13 @@
   <main id="app-main"></main>
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/api-config.js"></script>
+  <script src="js/api-config.js?v=1.0.0"></script>
   <script>
+    // NEW: Retail Investment App Dashboard
+    // Dashboard now supports:
+    // 1. Old dashboard (landing) - shows all features
+    // 2. NEW: Spot Trading → dashboard-invest.html (retail portfolio)
+    // 3. NEW: Click crypto → trade.html?symbol=BTC (simple trading)
     // Create fallback UI (don't replace body, just show in main)
     function showLoadingUI() {
       const main = document.getElementById('app-main');

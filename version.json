@@ -1,0 +1,14 @@
+{
+  "version": "1.0.0",
+  "deployment_date": "2026-02-03T14:00:00Z",
+  "features": [
+    "dashboard-invest.html - Retail investment app dashboard",
+    "trade.html - Simplified single-asset trading",
+    "Real-time price updates (5 second interval)",
+    "Dark theme, mobile responsive",
+    "Quick Actions preserved (Add Money/Withdraw)",
+    "Live Price Feed preserved"
+  ],
+  "last_commit": "382b868",
+  "status": "production"
+}
