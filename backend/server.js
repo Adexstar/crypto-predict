@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import { initializeDatabase } from './utils/initDb.js';
 import { getEmailStatus } from './utils/email.js';
+import { startOrderExecutionEngine } from './utils/orderExecutor.js';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -16,6 +17,7 @@ import transferRoutes from './routes/transfer.js';
 import aiRoutes from './routes/ai.js';
 import supportRoutes from './routes/support.js';
 import announcementRoutes from './routes/announcement.js';
+import tradingRoutes from './routes/trading.js';
 
 dotenv.config();
 
@@ -82,6 +84,7 @@ app.use('/api/transfers', transferRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/announcements', announcementRoutes);
+app.use('/api/trading', tradingRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -101,6 +104,9 @@ app.use((err, req, res, next) => {
   try {
     // Initialize database tables
     await initializeDatabase();
+    
+    // Start order execution engine for spot trading
+    startOrderExecutionEngine();
     
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invest | Dashboard</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --card-dark: #161616;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --text-light: #666666;
+            --primary-green: #27ae60;
+            --primary-green-hover: #219150;
+            --border-color: #2a2a2a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Header Navigation */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            margin-top: 20px;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header-icon {
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        /* Total Wealth Section */
+        .wealth-header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .wealth-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .wealth-amount {
+            font-size: 48px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -1px;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .wealth-amount .currency {
+            font-size: 28px;
+            color: var(--text-muted);
+        }
+
+        .wealth-change {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .wealth-change.positive {
+            color: var(--primary-green);
+        }
+
+        /* Action Buttons Grid */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 50px;
+        }
+
+        .btn {
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background-color: transparent;
+            color: var(--primary-green);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            min-height: 50px;
+        }
+
+        .btn:hover {
+            background-color: var(--card-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn.primary {
+            background-color: var(--primary-green);
+            color: white;
+            border: none;
+        }
+
+        .btn.primary:hover {
+            background-color: var(--primary-green-hover);
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            margin-top: 40px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .section-link {
+            color: var(--primary-green);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .section-link:hover {
+            color: var(--primary-green-hover);
+        }
+
+        /* Asset Cards */
+        .asset-card {
+            background-color: var(--card-dark);
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .asset-card:hover {
+            background-color: var(--bg-secondary);
+            border-color: var(--primary-green);
+            transform: translateY(-2px);
+        }
+
+        .asset-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .asset-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--bg-secondary), var(--card-dark));
+        }
+
+        .asset-text {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .asset-name {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .asset-symbol {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .asset-amount {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .asset-value {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .asset-change {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .asset-change.positive {
+            color: var(--primary-green);
+        }
+
+        .asset-change.negative {
+            color: #e74c3c;
+        }
+
+        /* Cash Section */
+        .cash-section {
+            margin-top: 40px;
+            margin-bottom: 60px;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 16px;
+            }
+
+            .wealth-amount {
+                font-size: 40px;
+            }
+
+            .section-title {
+                font-size: 16px;
+            }
+        }
+
+        /* Icons (using Unicode) */
+        .icon-plus::before { content: "➕ "; }
+        .icon-down::before { content: "⬇️ "; }
+        .icon-add::before { content: "➕ "; }
+        .icon-wallet::before { content: "💰"; }
+        .icon-chart::before { content: "📊"; }
+        .icon-btc::before { content: "₿"; }
+        .icon-gear::before { content: "⚙️"; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-title">Invest</div>
+            <div class="header-icon" id="settingsBtn">⚙️</div>
+        </div>
+
+        <!-- Total Wealth -->
+        <div class="wealth-header">
+            <div class="wealth-label">Your total wealth in USD</div>
+            <h1 class="wealth-amount">
+                <span>$</span><span id="totalBalance">0.00</span><span class="currency">USD</span>
+            </h1>
+            <div class="wealth-change" id="wealthChange">+0.00 USD (0.00%)</div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="action-grid">
+            <button class="btn primary" id="addMoneyBtn">
+                <span class="icon-plus"></span> Add money
+            </button>
+            <button class="btn" id="withdrawBtn">
+                <span class="icon-down"></span> Withdraw
+            </button>
+        </div>
+
+        <!-- Portfolio Section -->
+        <div id="portfolioSection" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title">Portfolio</h2>
+                <a href="trade.html" class="section-link">+ New Investment</a>
+            </div>
+            <div id="portfolioList"></div>
+        </div>
+
+        <!-- Cash Section -->
+        <div class="cash-section">
+            <h3 class="section-title">Cash</h3>
+            <div class="asset-card" style="cursor: default;" onclick="return false;">
+                <div class="asset-info">
+                    <div class="asset-icon" style="background: linear-gradient(135deg, #27ae60, #1e8449);">
+                        <span class="icon-wallet"></span>
+                    </div>
+                    <div class="asset-text">
+                        <div class="asset-name">USD Wallet</div>
+                        <div class="asset-symbol">Available to invest</div>
+                    </div>
+                </div>
+                <div class="asset-amount">
+                    <div class="asset-value" id="usdBalance">$0.00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api-config.js"></script>
+    <script>
+        let portfolio = { USDT: 0 };
+        let allPrices = {};
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadPortfolio();
+            await loadMarkets();
+            setupEventListeners();
+
+            // Refresh every 5 seconds
+            setInterval(async () => {
+                await loadPortfolio();
+                await loadMarkets();
+            }, 5000);
+        });
+
+        async function loadPortfolio() {
+            try {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/api/trading/portfolio`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+                portfolio = data.portfolio.assets || { USDT: 0 };
+                updateUI();
+            } catch (error) {
+                console.error('Error loading portfolio:', error);
+            }
+        }
+
+        async function loadMarkets() {
+            try {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/api/trading/markets`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+                const markets = data.markets || [];
+                
+                allPrices = {};
+                markets.forEach(m => {
+                    allPrices[m.baseAsset] = m;
+                });
+                updateUI();
+            } catch (error) {
+                console.error('Error loading markets:', error);
+            }
+        }
+
+        function updateUI() {
+            // Calculate total balance
+            let totalBalance = portfolio.USDT || 0;
+            Object.entries(portfolio).forEach(([asset, amount]) => {
+                if (asset.startsWith('_') || asset === 'USDT') return;
+                if (allPrices[asset]) {
+                    totalBalance += amount * allPrices[asset].lastPrice;
+                }
+            });
+
+            // Update display
+            document.getElementById('totalBalance').textContent = totalBalance.toFixed(2);
+            document.getElementById('usdBalance').textContent = `$${(portfolio.USDT || 0).toFixed(2)}`;
+
+            // Build portfolio list
+            const portfolioList = document.getElementById('portfolioList');
+            const items = Object.entries(portfolio)
+                .filter(([key]) => !key.startsWith('_'))
+                .filter(([key]) => key !== 'USDT')
+                .sort((a, b) => b[1] - a[1]);
+
+            if (items.length === 0) {
+                document.getElementById('portfolioSection').style.display = 'none';
+            } else {
+                document.getElementById('portfolioSection').style.display = 'block';
+                portfolioList.innerHTML = items.map(([asset, amount]) => {
+                    const market = allPrices[asset];
+                    const value = amount * (market?.lastPrice || 0);
+                    const change = market?.changePercent24h || 0;
+
+                    return `
+                        <div class="asset-card" onclick="goToTrade('${asset}')">
+                            <div class="asset-info">
+                                <div class="asset-icon" style="background: linear-gradient(135deg, #f39c12, #d68910);">
+                                    ${asset.substring(0, 1)}
+                                </div>
+                                <div class="asset-text">
+                                    <div class="asset-name">${asset}</div>
+                                    <div class="asset-symbol">${amount.toFixed(8)} ${asset}</div>
+                                </div>
+                            </div>
+                            <div class="asset-amount">
+                                <div class="asset-value">$${value.toFixed(2)}</div>
+                                <div class="asset-change ${change >= 0 ? 'positive' : 'negative'}">
+                                    ${change >= 0 ? '+' : ''}${change.toFixed(2)}%
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('addMoneyBtn').addEventListener('click', () => {
+                window.location.href = 'deposit.html';
+            });
+
+            document.getElementById('withdrawBtn').addEventListener('click', () => {
+                window.location.href = 'withdraw.html';
+            });
+
+            document.getElementById('settingsBtn').addEventListener('click', () => {
+                window.location.href = 'settings.html';
+            });
+        }
+
+        function goToTrade(symbol) {
+            window.location.href = `trade.html?symbol=${symbol}`;
+        }
+    </script>
+</body>
+</html>
