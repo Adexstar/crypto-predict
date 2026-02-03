@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invest | Dashboard</title>
+    <title>Invest | Portfolio Dashboard</title>
     <style>
         :root {
             --bg-dark: #0a0a0a;
@@ -11,7 +11,6 @@
             --card-dark: #161616;
             --text-main: #ffffff;
             --text-muted: #888888;
-            --text-light: #666666;
             --primary-green: #27ae60;
             --primary-green-hover: #219150;
             --border-color: #2a2a2a;
@@ -35,7 +34,7 @@
             margin: 0 auto;
         }
 
-        /* Header Navigation */
+        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -45,23 +44,28 @@
         }
 
         .header-title {
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 28px;
+            font-weight: 700;
         }
 
         .header-icon {
-            cursor: pointer;
             font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        /* Total Wealth Section */
+        .header-icon:hover {
+            transform: rotate(90deg);
+        }
+
+        /* Wealth Section */
         .wealth-header {
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             text-align: center;
         }
 
         .wealth-label {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -69,32 +73,29 @@
         }
 
         .wealth-amount {
-            font-size: 48px;
+            font-size: 56px;
             font-weight: 700;
-            margin: 0;
             letter-spacing: -1px;
-            display: flex;
-            align-items: baseline;
-            justify-content: center;
-            gap: 8px;
+            margin-bottom: 8px;
         }
 
-        .wealth-amount .currency {
-            font-size: 28px;
+        .wealth-amount span:last-child {
+            font-size: 18px;
+            font-weight: 400;
             color: var(--text-muted);
+            margin-left: 8px;
         }
 
         .wealth-change {
             font-size: 14px;
-            color: var(--text-muted);
-            margin-top: 8px;
-        }
-
-        .wealth-change.positive {
             color: var(--primary-green);
         }
 
-        /* Action Buttons Grid */
+        .wealth-change.negative {
+            color: #e74c3c;
+        }
+
+        /* Action Grid */
         .action-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -177,6 +178,13 @@
             background-color: var(--bg-secondary);
             border-color: var(--primary-green);
             transform: translateY(-2px);
+        }
+
+        .asset-card.no-hover:hover {
+            cursor: default;
+            background-color: var(--card-dark);
+            border-color: var(--border-color);
+            transform: none;
         }
 
         .asset-info {
@@ -285,15 +293,6 @@
                 font-size: 16px;
             }
         }
-
-        /* Icons (using Unicode) */
-        .icon-plus::before { content: "➕ "; }
-        .icon-down::before { content: "⬇️ "; }
-        .icon-add::before { content: "➕ "; }
-        .icon-wallet::before { content: "💰"; }
-        .icon-chart::before { content: "📊"; }
-        .icon-btc::before { content: "₿"; }
-        .icon-gear::before { content: "⚙️"; }
     </style>
 </head>
 <body>
@@ -306,9 +305,9 @@
 
         <!-- Total Wealth -->
         <div class="wealth-header">
-            <div class="wealth-label">Your total wealth in USD</div>
+            <div class="wealth-label">YOUR TOTAL WEALTH IN USD</div>
             <h1 class="wealth-amount">
-                <span>$</span><span id="totalBalance">0.00</span><span class="currency">USD</span>
+                $<span id="totalBalance">0.00</span><span>USD</span>
             </h1>
             <div class="wealth-change" id="wealthChange">+0.00 USD (0.00%)</div>
         </div>
@@ -316,10 +315,10 @@
         <!-- Quick Action Buttons -->
         <div class="action-grid">
             <button class="btn primary" id="addMoneyBtn">
-                <span class="icon-plus"></span> Add money
+                ➕ Add money
             </button>
             <button class="btn" id="withdrawBtn">
-                <span class="icon-down"></span> Withdraw
+                ⬇️ Withdraw
             </button>
         </div>
 
@@ -327,18 +326,29 @@
         <div id="portfolioSection" style="display: none;">
             <div class="section-header">
                 <h2 class="section-title">Portfolio</h2>
-                <a href="trade.html" class="section-link">+ New Investment</a>
+                <a href="trade.html" class="section-link">+ Invest</a>
             </div>
             <div id="portfolioList"></div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" style="display: none;">
+            <div class="empty-state">
+                <div class="empty-state-icon">📊</div>
+                <div class="empty-state-text">No investments yet</div>
+                <div class="empty-state-text" style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+                    Click "Add money" to get started
+                </div>
+            </div>
         </div>
 
         <!-- Cash Section -->
         <div class="cash-section">
             <h3 class="section-title">Cash</h3>
-            <div class="asset-card" style="cursor: default;" onclick="return false;">
+            <div class="asset-card no-hover">
                 <div class="asset-info">
                     <div class="asset-icon" style="background: linear-gradient(135deg, #27ae60, #1e8449);">
-                        <span class="icon-wallet"></span>
+                        💰
                     </div>
                     <div class="asset-text">
                         <div class="asset-name">USD Wallet</div>
@@ -357,119 +367,178 @@
         let portfolio = { USDT: 0 };
         let allPrices = {};
 
-        // Initialize dashboard
+        function getAuthToken() {
+            return localStorage.getItem('token') || localStorage.getItem('authToken');
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Dashboard-Invest loading...');
+            
+            const token = getAuthToken();
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            await loadUserData();
             await loadPortfolio();
             await loadMarkets();
+            updateUI();
             setupEventListeners();
-
-            // Refresh every 5 seconds
+            
+            // Auto-refresh every 5 seconds
             setInterval(async () => {
-                await loadPortfolio();
                 await loadMarkets();
+                await loadPortfolio();
+                updateUI();
             }, 5000);
         });
 
+        async function loadUserData() {
+            try {
+                const token = getAuthToken();
+                const response = await fetch(`${API_CONFIG.BASE_URL}/api/auth/verify`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Auth failed: ${response.status}`);
+                }
+                console.log('✅ User authenticated');
+            } catch (error) {
+                console.error('❌ Auth error:', error);
+                localStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
+
         async function loadPortfolio() {
             try {
+                const token = getAuthToken();
                 const response = await fetch(`${API_CONFIG.BASE_URL}/api/trading/portfolio`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
+
+                if (!response.ok) {
+                    console.warn(`Portfolio API returned ${response.status}`);
+                    return;
+                }
+
                 const data = await response.json();
-                portfolio = data.portfolio.assets || { USDT: 0 };
-                updateUI();
+                if (data.portfolio?.assets) {
+                    portfolio = data.portfolio.assets;
+                    console.log('✅ Portfolio loaded:', Object.keys(portfolio).filter(k => k !== 'USDT').length, 'assets');
+                }
             } catch (error) {
-                console.error('Error loading portfolio:', error);
+                console.error('❌ Portfolio error:', error);
             }
         }
 
         async function loadMarkets() {
             try {
+                const token = getAuthToken();
                 const response = await fetch(`${API_CONFIG.BASE_URL}/api/trading/markets`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
+
+                if (!response.ok) {
+                    console.warn(`Markets API returned ${response.status}`);
+                    return;
+                }
+
                 const data = await response.json();
-                const markets = data.markets || [];
                 
-                allPrices = {};
-                markets.forEach(m => {
-                    allPrices[m.baseAsset] = m;
-                });
-                updateUI();
+                if (Array.isArray(data.markets)) {
+                    allPrices = {};
+                    data.markets.forEach(m => {
+                        if (m.baseAsset && m.lastPrice) {
+                            allPrices[m.baseAsset] = m;
+                        }
+                    });
+                    console.log('✅ Markets loaded:', Object.keys(allPrices).length, 'symbols');
+                }
             } catch (error) {
-                console.error('Error loading markets:', error);
+                console.error('❌ Markets error:', error);
             }
         }
 
         function updateUI() {
-            // Calculate total balance
+            // Calculate total
             let totalBalance = portfolio.USDT || 0;
+            const cryptoHoldings = {};
+
             Object.entries(portfolio).forEach(([asset, amount]) => {
-                if (asset.startsWith('_') || asset === 'USDT') return;
-                if (allPrices[asset]) {
-                    totalBalance += amount * allPrices[asset].lastPrice;
+                if (asset === 'USDT' || asset.startsWith('_')) return;
+                if (amount <= 0) return;
+
+                const market = allPrices[asset];
+                if (market) {
+                    const value = amount * market.lastPrice;
+                    cryptoHoldings[asset] = {
+                        amount,
+                        value,
+                        change: market.changePercent24h || 0,
+                        price: market.lastPrice
+                    };
+                    totalBalance += value;
                 }
             });
 
             // Update display
             document.getElementById('totalBalance').textContent = totalBalance.toFixed(2);
             document.getElementById('usdBalance').textContent = `$${(portfolio.USDT || 0).toFixed(2)}`;
-
-            // Build portfolio list
+            
+            // Show portfolio
             const portfolioList = document.getElementById('portfolioList');
-            const items = Object.entries(portfolio)
-                .filter(([key]) => !key.startsWith('_'))
-                .filter(([key]) => key !== 'USDT')
-                .sort((a, b) => b[1] - a[1]);
+            const portfolioSection = document.getElementById('portfolioSection');
+            const emptyState = document.getElementById('emptyState');
 
-            if (items.length === 0) {
-                document.getElementById('portfolioSection').style.display = 'none';
+            const holdings = Object.entries(cryptoHoldings)
+                .sort((a, b) => b[1].value - a[1].value);
+
+            if (holdings.length === 0) {
+                portfolioSection.style.display = 'none';
+                emptyState.style.display = 'block';
             } else {
-                document.getElementById('portfolioSection').style.display = 'block';
-                portfolioList.innerHTML = items.map(([asset, amount]) => {
-                    const market = allPrices[asset];
-                    const value = amount * (market?.lastPrice || 0);
-                    const change = market?.changePercent24h || 0;
+                portfolioSection.style.display = 'block';
+                emptyState.style.display = 'none';
 
-                    return `
-                        <div class="asset-card" onclick="goToTrade('${asset}')">
-                            <div class="asset-info">
-                                <div class="asset-icon" style="background: linear-gradient(135deg, #f39c12, #d68910);">
-                                    ${asset.substring(0, 1)}
-                                </div>
-                                <div class="asset-text">
-                                    <div class="asset-name">${asset}</div>
-                                    <div class="asset-symbol">${amount.toFixed(8)} ${asset}</div>
-                                </div>
+                portfolioList.innerHTML = holdings.map(([asset, data]) => `
+                    <div class="asset-card" onclick="window.location.href='trade.html?symbol=${asset}'">
+                        <div class="asset-info">
+                            <div class="asset-icon" style="background: linear-gradient(135deg, #f39c12, #d68910);">
+                                ${asset.substring(0, 2)}
                             </div>
-                            <div class="asset-amount">
-                                <div class="asset-value">$${value.toFixed(2)}</div>
-                                <div class="asset-change ${change >= 0 ? 'positive' : 'negative'}">
-                                    ${change >= 0 ? '+' : ''}${change.toFixed(2)}%
-                                </div>
+                            <div class="asset-text">
+                                <div class="asset-name">${asset}</div>
+                                <div class="asset-symbol">${data.amount.toFixed(8)} ${asset}</div>
                             </div>
                         </div>
-                    `;
-                }).join('');
+                        <div class="asset-amount">
+                            <div class="asset-value">$${data.value.toFixed(2)}</div>
+                            <div class="asset-change ${data.change >= 0 ? 'positive' : 'negative'}">
+                                ${data.change >= 0 ? '+' : ''}${data.change.toFixed(2)}%
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
             }
+
+            // Update wealth change
+            let totalChange = 0;
+            Object.values(cryptoHoldings).forEach(h => {
+                totalChange += (h.value / (1 + h.change/100)) * (h.change / 100);
+            });
+
+            const changeEl = document.getElementById('wealthChange');
+            changeEl.textContent = `${totalChange >= 0 ? '+' : ''}$${totalChange.toFixed(2)} (${totalChange >= 0 ? '+' : ''}${totalBalance > 0 ? (totalChange / totalBalance * 100).toFixed(2) : 0}%)`;
+            changeEl.className = totalChange >= 0 ? 'wealth-change' : 'wealth-change negative';
         }
 
         function setupEventListeners() {
-            document.getElementById('addMoneyBtn').addEventListener('click', () => {
-                window.location.href = 'deposit.html';
-            });
-
-            document.getElementById('withdrawBtn').addEventListener('click', () => {
-                window.location.href = 'withdraw.html';
-            });
-
-            document.getElementById('settingsBtn').addEventListener('click', () => {
-                window.location.href = 'settings.html';
-            });
-        }
-
-        function goToTrade(symbol) {
-            window.location.href = `trade.html?symbol=${symbol}`;
+            document.getElementById('addMoneyBtn').onclick = () => window.location.href = 'deposit.html';
+            document.getElementById('withdrawBtn').onclick = () => window.location.href = 'withdraw.html';
+            document.getElementById('settingsBtn').onclick = () => window.location.href = 'settings.html';
         }
     </script>
 </body>
