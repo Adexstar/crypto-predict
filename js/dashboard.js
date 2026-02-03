@@ -436,7 +436,7 @@ function renderHeader() {
     <div class="nav">
       <span class="sandbox-badge">DATA FEED</span>
       <a href="landing.html" class="nav-link">Landing</a>
-      <a href="dashboard-invest.html" class="nav-link">Spot Trading</a>
+      <a href="index.html" class="nav-link">Full Dashboard</a>
       <a href="deposit.html" class="nav-link">Deposit</a>
       <a href="withdraw.html" class="nav-link">Withdraw</a>
       <a href="transfer.html" class="nav-link">Transfer</a>
