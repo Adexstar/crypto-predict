@@ -342,6 +342,14 @@
             </div>
         </div>
 
+        <!-- Explore Assets Section -->
+        <div id="exploreSection">
+            <div class="section-header">
+                <h2 class="section-title">Explore Assets</h2>
+            </div>
+            <div id="marketsList"></div>
+        </div>
+
         <!-- Cash Section -->
         <div class="cash-section">
             <h3 class="section-title">Cash</h3>
@@ -533,12 +541,54 @@
             const changeEl = document.getElementById('wealthChange');
             changeEl.textContent = `${totalChange >= 0 ? '+' : ''}$${totalChange.toFixed(2)} (${totalChange >= 0 ? '+' : ''}${totalBalance > 0 ? (totalChange / totalBalance * 100).toFixed(2) : 0}%)`;
             changeEl.className = totalChange >= 0 ? 'wealth-change' : 'wealth-change negative';
+
+            // Render market list (Explore Assets)
+            renderMarketList();
         }
 
         function setupEventListeners() {
             document.getElementById('addMoneyBtn').onclick = () => window.location.href = 'deposit.html';
             document.getElementById('withdrawBtn').onclick = () => window.location.href = 'withdraw.html';
             document.getElementById('settingsBtn').onclick = () => window.location.href = 'settings.html';
+        }
+
+        function renderMarketList() {
+            // Featured assets to display
+            const featuredAssets = ['BTC', 'ETH', 'SOL', 'USDT'];
+            const marketsList = document.getElementById('marketsList');
+
+            const assetCards = featuredAssets.map(symbol => {
+                const market = allPrices[symbol];
+                if (!market) return '';
+
+                const changePercent = market.changePercent24h || 0;
+                const isPositive = changePercent >= 0;
+                const price = market.lastPrice || 0;
+
+                return `
+                    <a href="trade.html?symbol=${symbol}" style="text-decoration: none; cursor: pointer;">
+                        <div class="asset-card">
+                            <div class="asset-info">
+                                <div class="asset-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                                    ${symbol.substring(0, 2)}
+                                </div>
+                                <div class="asset-text">
+                                    <div class="asset-name">${symbol}</div>
+                                    <div class="asset-symbol">${symbol === 'BTC' ? 'Bitcoin' : symbol === 'ETH' ? 'Ethereum' : symbol === 'SOL' ? 'Solana' : 'Tether'}</div>
+                                </div>
+                            </div>
+                            <div class="asset-amount">
+                                <div class="asset-value">$${price.toFixed(2)}</div>
+                                <div class="asset-change ${isPositive ? 'positive' : 'negative'}">
+                                    ${isPositive ? '+' : ''}${changePercent.toFixed(2)}%
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+
+            marketsList.innerHTML = assetCards;
         }
     </script>
 </body>
