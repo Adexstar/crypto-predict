@@ -608,27 +608,38 @@
 
             try {
                 const token = getAuthToken();
+                const orderPayload = {
+                    symbol: currentSymbol + '/USDT',
+                    side: 'BUY',
+                    orderType: 'MARKET',
+                    quantity: parseFloat((amount / currentPrice).toFixed(8)),
+                    price: parseFloat(currentPrice)
+                };
+
+                console.log('📤 Sending buy order:', orderPayload);
+
                 const response = await fetch(`${API_CONFIG.BASE_URL}/api/trading/orders`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        symbol: currentSymbol,
-                        side: 'BUY',
-                        quantity: (amount / currentPrice).toFixed(8),
-                        price: currentPrice
-                    })
+                    body: JSON.stringify(orderPayload)
                 });
+
+                const responseData = await response.json();
+                console.log('📥 Order response:', responseData);
 
                 if (response.ok) {
                     alert('✅ Buy order placed successfully!');
                     closeBuyModal();
+                    document.getElementById('buyAmount').value = '';
+                    document.getElementById('buyReceive').value = '';
                     await loadMarketData();
                     updateUI();
                 } else {
-                    alert('❌ Failed to place order');
+                    alert('❌ Order failed: ' + (responseData.error || 'Unknown error'));
+                    console.error('❌ Order error:', responseData);
                 }
             } catch (error) {
                 console.error('Order error:', error);
@@ -647,27 +658,38 @@
 
             try {
                 const token = getAuthToken();
+                const orderPayload = {
+                    symbol: currentSymbol + '/USDT',
+                    side: 'SELL',
+                    orderType: 'MARKET',
+                    quantity: parseFloat(amount),
+                    price: parseFloat(currentPrice)
+                };
+
+                console.log('📤 Sending sell order:', orderPayload);
+
                 const response = await fetch(`${API_CONFIG.BASE_URL}/api/trading/orders`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        symbol: currentSymbol,
-                        side: 'SELL',
-                        quantity: amount,
-                        price: currentPrice
-                    })
+                    body: JSON.stringify(orderPayload)
                 });
+
+                const responseData = await response.json();
+                console.log('📥 Order response:', responseData);
 
                 if (response.ok) {
                     alert('✅ Sell order placed successfully!');
                     closeSellModal();
+                    document.getElementById('sellAmount').value = '';
+                    document.getElementById('sellReceive').value = '';
                     await loadMarketData();
                     updateUI();
                 } else {
-                    alert('❌ Failed to place order');
+                    alert('❌ Order failed: ' + (responseData.error || 'Unknown error'));
+                    console.error('❌ Order error:', responseData);
                 }
             } catch (error) {
                 console.error('Order error:', error);

@@ -949,7 +949,14 @@
                     allPrices = {};
                     data.markets.forEach(m => {
                         if (m.baseAsset && m.lastPrice) {
-                            allPrices[m.baseAsset] = m;
+                            allPrices[m.baseAsset] = {
+                                baseAsset: m.baseAsset,
+                                lastPrice: parseFloat(m.lastPrice),
+                                changePercent24h: parseFloat(m.changePercent24h || 0),
+                                high24h: parseFloat(m.high24h || 0),
+                                low24h: parseFloat(m.low24h || 0),
+                                volume24h: parseFloat(m.volume24h || 0)
+                            };
                         }
                     });
                     console.log('✅ Markets loaded:', Object.keys(allPrices).length, 'symbols');
