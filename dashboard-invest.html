@@ -135,6 +135,78 @@
             background-color: var(--primary-green-hover);
         }
 
+        /* Quick Actions Section */
+        .quick-actions-section {
+            margin-top: 40px;
+            margin-bottom: 40px;
+            padding: 0;
+        }
+
+        .quick-actions-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .quick-action-btn {
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1.5px solid transparent;
+            background-color: transparent;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            min-height: 52px;
+            text-align: center;
+        }
+
+        .quick-action-btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .quick-action-btn.primary-blue {
+            background: linear-gradient(135deg, #4a7bff, #3a6bef);
+            color: white;
+        }
+
+        .quick-action-btn.primary-blue:hover {
+            background: linear-gradient(135deg, #5a8bff, #4a7bff);
+        }
+
+        .quick-action-btn.secondary-orange {
+            background: linear-gradient(135deg, #ff9d44, #ff8c2a);
+            color: white;
+        }
+
+        .quick-action-btn.secondary-orange:hover {
+            background: linear-gradient(135deg, #ffad54, #ff9d44);
+        }
+
+        .quick-action-btn.secondary-gold {
+            background: transparent;
+            color: #d4a574;
+            border: 1.5px solid #d4a574;
+        }
+
+        .quick-action-btn.secondary-gold:hover {
+            background: rgba(212, 165, 116, 0.1);
+            color: #e8b88a;
+            border-color: #e8b88a;
+        }
+
         /* Section Headers */
         .section-header {
             display: flex;
@@ -481,6 +553,26 @@
             <button class="btn" id="withdrawBtn">
                 ⬇️ Withdraw
             </button>
+        </div>
+
+        <!-- Quick Actions Trading Controls -->
+        <div class="quick-actions-section">
+            <div class="section-title">Quick Actions</div>
+            <div class="quick-actions-subtitle">Trading Controls</div>
+            <div class="quick-actions-grid">
+                <button class="quick-action-btn primary-blue" id="addFundsBtn">
+                    💰 Add Funds to Account
+                </button>
+                <button class="quick-action-btn primary-blue" id="withdrawFundsBtn">
+                    🔄 Withdraw Funds
+                </button>
+                <button class="quick-action-btn secondary-orange" id="profitCycleBtn">
+                    📊 Profit Cycle
+                </button>
+                <button class="quick-action-btn secondary-gold" id="aiQuantBtn">
+                    🤖 AI Quant Settings
+                </button>
+            </div>
         </div>
 
         <!-- Portfolio Section -->
@@ -998,6 +1090,12 @@
             document.getElementById('addMoneyBtn').onclick = () => window.location.href = 'deposit.html';
             document.getElementById('withdrawBtn').onclick = () => window.location.href = 'withdraw.html';
             document.getElementById('settingsBtn').onclick = () => window.location.href = 'settings.html';
+            
+            // Quick Actions buttons
+            document.getElementById('addFundsBtn').onclick = () => window.location.href = 'deposit.html';
+            document.getElementById('withdrawFundsBtn').onclick = () => window.location.href = 'withdraw.html';
+            document.getElementById('profitCycleBtn').onclick = () => window.location.href = 'scheduler.html';
+            document.getElementById('aiQuantBtn').onclick = () => window.location.href = 'ai-settings.html';
         }
 
         function renderMarketList() {
