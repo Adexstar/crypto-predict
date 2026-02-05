@@ -169,7 +169,7 @@ router.post('/:withdrawalId/approve', authenticate, async (req, res) => {
     }
 
     // Update withdrawal and deduct balance in transaction
-    const [updatedWithdrawal, user] = await prisma.$transaction(async (tx) => {
+    const [updatedWithdrawal, user, portfolio] = await prisma.$transaction(async (tx) => {
       const wd = await tx.withdrawal.update({
         where: { id: withdrawalId },
         data: {
@@ -182,6 +182,7 @@ router.post('/:withdrawalId/approve', authenticate, async (req, res) => {
         where: { id: withdrawal.userId },
         data: {
           balance: { decrement: withdrawal.amount },
+          spotBalance: { decrement: withdrawal.amount },  // Also update spotBalance
           history: {
             create: createHistoryEntry('withdraw.approved', { 
               id: withdrawalId, 
@@ -191,11 +192,29 @@ router.post('/:withdrawalId/approve', authenticate, async (req, res) => {
         }
       });
 
-      return [wd, usr];
+      // IMPORTANT: Also update portfolio USDT to keep them in sync
+      let portfolio = await tx.portfolio.findUnique({
+        where: { userId: withdrawal.userId }
+      });
+
+      if (portfolio) {
+        const currentUSDT = portfolio.assets?.USDT || 0;
+        const newUSDT = Math.max(0, currentUSDT - withdrawal.amount);  // Don't go negative
+        portfolio = await tx.portfolio.update({
+          where: { userId: withdrawal.userId },
+          data: {
+            assets: { ...portfolio.assets, USDT: newUSDT }
+          }
+        });
+      }
+
+      return [wd, usr, portfolio];
     });
 
     res.json({ 
       withdrawal: updatedWithdrawal, 
+      user,
+      portfolio,
       message: 'Withdrawal approved successfully' 
     });
   } catch (error) {

@@ -884,7 +884,9 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`User profile fetch failed: ${response.status}`);
+                    console.warn(`User profile fetch status: ${response.status}`);
+                    userBalanceData = {};
+                    return;
                 }
 
                 const data = await response.json();
@@ -1103,14 +1105,22 @@
             document.getElementById('usdBalance').textContent = `$${(portfolio.USDT || 0).toFixed(2)}`;
             
             // Update account overview with REAL values from backend
-            // Use actual testing and spot balances if available, otherwise calculate
+            // Primary source of truth: Portfolio USDT
+            // Use testing balance from user profile if available, otherwise calculate from portfolio
+            const depositedBalance = portfolio.USDT || 0;
             const testingBalance = userBalanceData.testingBalance || 0;
-            const spotBalance = userBalanceData.spotBalance || (portfolio.USDT || 0);
-            const depositedBalance = spotBalance - testingBalance;
+            const totalAccountValue = totalBalanceValue + testingBalance;
             
             document.getElementById('testingBalance').textContent = `$${testingBalance.toFixed(2)}`;
             document.getElementById('depositedBalance').textContent = `$${depositedBalance.toFixed(2)}`;
-            document.getElementById('totalAccountValue').textContent = `$${totalBalanceValue.toFixed(2)}`;
+            document.getElementById('totalAccountValue').textContent = `$${totalAccountValue.toFixed(2)}`;
+            
+            console.log('💰 Balance Display:', {
+                USDT_from_portfolio: portfolio.USDT,
+                deposited: depositedBalance,
+                testing: testingBalance,
+                total: totalAccountValue
+            });
             
             // Show portfolio
             const portfolioList = document.getElementById('portfolioList');

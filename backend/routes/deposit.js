@@ -162,7 +162,7 @@ router.post('/:depositId/confirm', authenticate, async (req, res) => {
     const depositAmount = amount || deposit.amount;
 
     // Update deposit and user balance in transaction
-    const [updatedDeposit, user] = await prisma.$transaction(async (tx) => {
+    const [updatedDeposit, user, portfolio] = await prisma.$transaction(async (tx) => {
       const dep = await tx.deposit.update({
         where: { id: depositId },
         data: {
@@ -175,6 +175,7 @@ router.post('/:depositId/confirm', authenticate, async (req, res) => {
         where: { id: deposit.userId },
         data: {
           balance: { increment: depositAmount },
+          spotBalance: { increment: depositAmount },  // Also update spotBalance
           history: {
             create: createHistoryEntry('deposit.confirmed', { 
               id: depositId, 
@@ -184,11 +185,35 @@ router.post('/:depositId/confirm', authenticate, async (req, res) => {
         }
       });
 
-      return [dep, usr];
+      // IMPORTANT: Also update portfolio USDT to keep them in sync
+      let portfolio = await tx.portfolio.findUnique({
+        where: { userId: deposit.userId }
+      });
+
+      if (!portfolio) {
+        portfolio = await tx.portfolio.create({
+          data: {
+            userId: deposit.userId,
+            assets: { USDT: depositAmount }
+          }
+        });
+      } else {
+        const currentUSDT = portfolio.assets?.USDT || 0;
+        portfolio = await tx.portfolio.update({
+          where: { userId: deposit.userId },
+          data: {
+            assets: { ...portfolio.assets, USDT: currentUSDT + depositAmount }
+          }
+        });
+      }
+
+      return [dep, usr, portfolio];
     });
 
     res.json({ 
       deposit: updatedDeposit, 
+      user,
+      portfolio,
       message: 'Deposit confirmed successfully' 
     });
   } catch (error) {

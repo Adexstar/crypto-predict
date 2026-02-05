@@ -144,7 +144,7 @@ router.post('/orders', authenticate, async (req, res) => {
       portfolio = await prisma.portfolio.create({
         data: {
           userId,
-          assets: { USDT: 10000 }
+          assets: { USDT: 0 }  // Fresh users start with $0
         }
       });
     }
