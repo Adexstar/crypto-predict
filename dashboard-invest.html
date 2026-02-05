@@ -533,7 +533,14 @@
         <!-- Header -->
         <div class="header">
             <div class="header-title">Invest</div>
-            <div class="header-icon" id="settingsBtn">⚙️</div>
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <button id="profileBtn" style="background: none; border: none; color: var(--text-main); font-size: 14px; cursor: pointer; font-weight: 600;">
+                    👤 Profile
+                </button>
+                <button id="settingsBtn" style="background: none; border: none; color: var(--text-main); font-size: 14px; cursor: pointer; font-weight: 600;">
+                    ⚙️ Settings
+                </button>
+            </div>
         </div>
 
         <!-- Total Wealth -->
@@ -873,12 +880,12 @@
             updateUI();
             setupEventListeners();
             
-            // Auto-refresh every 5 seconds
+            // Auto-refresh every 2 seconds for real-time balance updates
             setInterval(async () => {
-                await loadMarkets();
                 await loadPortfolio();
+                await loadMarkets();
                 updateUI();
-            }, 5000);
+            }, 2000);
         });
 
         async function loadUserData() {
@@ -914,7 +921,10 @@
                 const data = await response.json();
                 if (data.portfolio?.assets) {
                     portfolio = data.portfolio.assets;
-                    console.log('✅ Portfolio loaded:', Object.keys(portfolio).filter(k => k !== 'USDT').length, 'assets');
+                    console.log('✅ Portfolio loaded with latest data:', {
+                        USDT: portfolio.USDT,
+                        assets: Object.keys(portfolio).filter(k => k !== 'USDT').length
+                    });
                 }
             } catch (error) {
                 console.error('❌ Portfolio error:', error);
@@ -950,7 +960,7 @@
         }
 
         function updateUI() {
-            // Calculate total
+            // Calculate total - ALWAYS use latest portfolio data
             let totalBalance = portfolio.USDT || 0;
             const cryptoHoldings = {};
             let totalCryptoValue = 0;
@@ -973,14 +983,23 @@
                 }
             });
 
-            // Update main display
-            document.getElementById('totalBalance').textContent = totalBalance.toFixed(2);
+            console.log('📊 Dashboard Update:', {
+                USDT: portfolio.USDT,
+                totalBalance: totalBalance,
+                cryptoValue: totalCryptoValue
+            });
+
+            // Update main display with REAL balance
+            const totalBalanceValue = totalBalance;
+            document.getElementById('totalBalance').textContent = totalBalanceValue.toFixed(2);
             document.getElementById('usdBalance').textContent = `$${(portfolio.USDT || 0).toFixed(2)}`;
             
-            // Update account overview
-            document.getElementById('testingBalance').textContent = `$${(portfolio.USDT * 0.1).toFixed(2)}`;
-            document.getElementById('depositedBalance').textContent = `$${(portfolio.USDT * 0.9).toFixed(2)}`;
-            document.getElementById('totalAccountValue').textContent = `$${totalBalance.toFixed(2)}`;
+            // Update account overview with REAL values
+            const testingBalance = portfolio.USDT * 0.1;
+            const depositedBalance = portfolio.USDT * 0.9;
+            document.getElementById('testingBalance').textContent = `$${testingBalance.toFixed(2)}`;
+            document.getElementById('depositedBalance').textContent = `$${depositedBalance.toFixed(2)}`;
+            document.getElementById('totalAccountValue').textContent = `$${totalBalanceValue.toFixed(2)}`;
             
             // Show portfolio
             const portfolioList = document.getElementById('portfolioList');
@@ -1089,6 +1108,7 @@
         function setupEventListeners() {
             document.getElementById('addMoneyBtn').onclick = () => window.location.href = 'deposit.html';
             document.getElementById('withdrawBtn').onclick = () => window.location.href = 'withdraw.html';
+            document.getElementById('profileBtn').onclick = () => window.location.href = 'profile.html';
             document.getElementById('settingsBtn').onclick = () => window.location.href = 'settings.html';
             
             // Quick Actions buttons
