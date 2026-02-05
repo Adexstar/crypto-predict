@@ -251,7 +251,159 @@
         /* Cash Section */
         .cash-section {
             margin-top: 40px;
-            margin-bottom: 60px;
+            margin-bottom: 40px;
+        }
+
+        /* Data Cards Section */
+        .data-card {
+            background-color: var(--card-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .data-card-title {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        /* Account Overview Stats */
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .stat-value.highlight {
+            color: var(--primary-green);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(42, 42, 42, 0.3);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .signal-strong-buy {
+            color: var(--primary-green);
+            font-weight: 600;
+        }
+
+        .signal-buy {
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        .signal-hold {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .signal-sell {
+            color: #e67e22;
+            font-weight: 600;
+        }
+
+        .sentiment-bar {
+            display: flex;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+            background: var(--border-color);
+        }
+
+        .sentiment-positive {
+            background: var(--primary-green);
+        }
+
+        .sentiment-neutral {
+            background: var(--text-muted);
+        }
+
+        .sentiment-negative {
+            background: #e74c3c;
+        }
+
+        /* Portfolio Allocation */
+        .allocation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(42, 42, 42, 0.3);
+        }
+
+        .allocation-item:last-child {
+            border-bottom: none;
+        }
+
+        .allocation-name {
+            font-size: 13px;
+            color: var(--text-main);
+        }
+
+        .allocation-percentage {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-green);
+        }
+
+        .allocation-bar {
+            width: 100px;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 0 12px;
+        }
+
+        .allocation-bar-fill {
+            height: 100%;
+            background: var(--primary-green);
+            border-radius: 2px;
         }
 
         /* Loading State */
@@ -291,6 +443,15 @@
 
             .section-title {
                 font-size: 16px;
+            }
+
+            .data-table {
+                font-size: 11px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px 4px;
             }
         }
     </style>
@@ -367,6 +528,232 @@
                     <div class="asset-value" id="usdBalance">$0.00</div>
                 </div>
             </div>
+        </div>
+
+        <!-- Account Overview Section -->
+        <div class="data-card">
+            <div class="data-card-title">📊 Account Overview</div>
+            <div class="stat-row">
+                <span class="stat-label">Testing Balance</span>
+                <span class="stat-value" id="testingBalance">$0.00</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Deposited Balance</span>
+                <span class="stat-value" id="depositedBalance">$0.00</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Total Account Value</span>
+                <span class="stat-value highlight" id="totalAccountValue">$0.00</span>
+            </div>
+        </div>
+
+        <!-- Market Sentiment Section -->
+        <div class="data-card">
+            <div class="data-card-title">📈 Market Sentiment</div>
+            <div style="margin: 15px 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-size: 13px;">Current: Neutral (50%)</span>
+                    <span style="font-size: 13px; color: var(--text-muted);">AI-Powered</span>
+                </div>
+                <div class="sentiment-bar">
+                    <div class="sentiment-positive" style="width: 30%;"></div>
+                    <div class="sentiment-neutral" style="width: 40%;"></div>
+                    <div class="sentiment-negative" style="width: 30%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Book Section -->
+        <div class="data-card">
+            <div class="data-card-title">📋 Order Book (BTC)</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Price (USD)</th>
+                        <th>Size (BTC)</th>
+                        <th>Price (USD)</th>
+                        <th>Size (BTC)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="color: #e74c3c;">$0.00</td>
+                        <td>0.060</td>
+                        <td style="color: var(--primary-green);">$0.00</td>
+                        <td>2.513</td>
+                    </tr>
+                    <tr>
+                        <td style="color: #e74c3c;">$0.00</td>
+                        <td>7.295</td>
+                        <td style="color: var(--primary-green);">$0.00</td>
+                        <td>2.733</td>
+                    </tr>
+                    <tr>
+                        <td style="color: #e74c3c;">$0.00</td>
+                        <td>1.963</td>
+                        <td style="color: var(--primary-green);">$0.00</td>
+                        <td>1.437</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Open Positions Section -->
+        <div class="data-card">
+            <div class="data-card-title">💼 Open Positions</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Size</th>
+                        <th>Entry</th>
+                        <th>Current</th>
+                        <th>PNL</th>
+                        <th>Leverage</th>
+                    </tr>
+                </thead>
+                <tbody id="openPositions">
+                    <tr>
+                        <td>BTC</td>
+                        <td>0.5</td>
+                        <td>$40,000</td>
+                        <td>$89961.19</td>
+                        <td style="color: var(--primary-green);">+$24980.60 (124.90%)</td>
+                        <td>1x</td>
+                    </tr>
+                    <tr>
+                        <td>ETH</td>
+                        <td>5</td>
+                        <td>$2,100</td>
+                        <td>$2225.52</td>
+                        <td style="color: var(--primary-green);">+$627.60 (5.98%)</td>
+                        <td>1x</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Portfolio Allocation Section -->
+        <div class="data-card">
+            <div class="data-card-title">🎯 Portfolio Allocation</div>
+            <div id="allocationList">
+                <div class="allocation-item">
+                    <div>
+                        <div class="allocation-name">Bitcoin</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">$4,500 (45.0%)</div>
+                    </div>
+                    <div class="allocation-bar">
+                        <div class="allocation-bar-fill" style="width: 45%;"></div>
+                    </div>
+                    <div class="allocation-percentage">45%</div>
+                </div>
+                <div class="allocation-item">
+                    <div>
+                        <div class="allocation-name">Ethereum</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">$2,800 (28.0%)</div>
+                    </div>
+                    <div class="allocation-bar">
+                        <div class="allocation-bar-fill" style="width: 28%;"></div>
+                    </div>
+                    <div class="allocation-percentage">28%</div>
+                </div>
+                <div class="allocation-item">
+                    <div>
+                        <div class="allocation-name">Stablecoins</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">$1,800 (18.0%)</div>
+                    </div>
+                    <div class="allocation-bar">
+                        <div class="allocation-bar-fill" style="width: 18%;"></div>
+                    </div>
+                    <div class="allocation-percentage">18%</div>
+                </div>
+                <div class="allocation-item">
+                    <div>
+                        <div class="allocation-name">Altcoins</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">$900 (9.0%)</div>
+                    </div>
+                    <div class="allocation-bar">
+                        <div class="allocation-bar-fill" style="width: 9%;"></div>
+                    </div>
+                    <div class="allocation-percentage">9%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Trading Signals Section -->
+        <div class="data-card">
+            <div class="data-card-title">🤖 AI Trading Signals</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Signal</th>
+                        <th>Confidence</th>
+                        <th>Timeframe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>BTC/USDT</td>
+                        <td class="signal-strong-buy">STRONG BUY</td>
+                        <td>87%</td>
+                        <td>4H</td>
+                    </tr>
+                    <tr>
+                        <td>ETH/USDT</td>
+                        <td class="signal-buy">BUY</td>
+                        <td>72%</td>
+                        <td>1H</td>
+                    </tr>
+                    <tr>
+                        <td>BNB/USDT</td>
+                        <td class="signal-sell">SELL</td>
+                        <td>65%</td>
+                        <td>1D</td>
+                    </tr>
+                    <tr>
+                        <td>SOL/USDT</td>
+                        <td class="signal-hold">HOLD</td>
+                        <td>58%</td>
+                        <td>4H</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Transaction History Section -->
+        <div class="data-card">
+            <div class="data-card-title">📝 Transaction History</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionHistory">
+                    <tr>
+                        <td>2024-01-15 14:32</td>
+                        <td>Buy BTC</td>
+                        <td>0.5 BTC</td>
+                        <td style="color: var(--primary-green);">✓ Completed</td>
+                    </tr>
+                    <tr>
+                        <td>2024-01-14 09:15</td>
+                        <td>Deposit</td>
+                        <td>$5,000</td>
+                        <td style="color: var(--primary-green);">✓ Completed</td>
+                    </tr>
+                    <tr>
+                        <td>2024-01-13 16:44</td>
+                        <td>Buy ETH</td>
+                        <td>5 ETH</td>
+                        <td style="color: var(--primary-green);">✓ Completed</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -474,6 +861,7 @@
             // Calculate total
             let totalBalance = portfolio.USDT || 0;
             const cryptoHoldings = {};
+            let totalCryptoValue = 0;
 
             Object.entries(portfolio).forEach(([asset, amount]) => {
                 if (asset === 'USDT' || asset.startsWith('_')) return;
@@ -489,12 +877,18 @@
                         price: market.lastPrice
                     };
                     totalBalance += value;
+                    totalCryptoValue += value;
                 }
             });
 
-            // Update display
+            // Update main display
             document.getElementById('totalBalance').textContent = totalBalance.toFixed(2);
             document.getElementById('usdBalance').textContent = `$${(portfolio.USDT || 0).toFixed(2)}`;
+            
+            // Update account overview
+            document.getElementById('testingBalance').textContent = `$${(portfolio.USDT * 0.1).toFixed(2)}`;
+            document.getElementById('depositedBalance').textContent = `$${(portfolio.USDT * 0.9).toFixed(2)}`;
+            document.getElementById('totalAccountValue').textContent = `$${totalBalance.toFixed(2)}`;
             
             // Show portfolio
             const portfolioList = document.getElementById('portfolioList');
@@ -542,8 +936,62 @@
             changeEl.textContent = `${totalChange >= 0 ? '+' : ''}$${totalChange.toFixed(2)} (${totalChange >= 0 ? '+' : ''}${totalBalance > 0 ? (totalChange / totalBalance * 100).toFixed(2) : 0}%)`;
             changeEl.className = totalChange >= 0 ? 'wealth-change' : 'wealth-change negative';
 
+            // Update portfolio allocation
+            updateAllocation(cryptoHoldings, totalCryptoValue);
+
+            // Update open positions
+            updateOpenPositions(holdings);
+
             // Render market list (Explore Assets)
             renderMarketList();
+        }
+
+        function updateAllocation(holdings, total) {
+            if (Object.keys(holdings).length === 0) return;
+
+            const allocationList = document.getElementById('allocationList');
+            const items = Object.entries(holdings)
+                .sort((a, b) => b[1].value - a[1].value)
+                .map(([asset, data]) => {
+                    const percent = total > 0 ? (data.value / total * 100) : 0;
+                    return `
+                        <div class="allocation-item">
+                            <div>
+                                <div class="allocation-name">${asset}</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">$${data.value.toFixed(2)} (${percent.toFixed(1)}%)</div>
+                            </div>
+                            <div class="allocation-bar">
+                                <div class="allocation-bar-fill" style="width: ${percent}%;"></div>
+                            </div>
+                            <div class="allocation-percentage">${percent.toFixed(0)}%</div>
+                        </div>
+                    `;
+                })
+                .join('');
+
+            allocationList.innerHTML = items;
+        }
+
+        function updateOpenPositions(holdings) {
+            const tbody = document.getElementById('openPositions');
+            
+            if (holdings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No open positions</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = holdings.slice(0, 5).map(([asset, data]) => `
+                <tr>
+                    <td>${asset}</td>
+                    <td>${data.amount.toFixed(8)}</td>
+                    <td>$${(data.price * 0.95).toFixed(2)}</td>
+                    <td>$${data.price.toFixed(2)}</td>
+                    <td style="color: ${data.change >= 0 ? 'var(--primary-green)' : '#e74c3c'};">
+                        ${data.change >= 0 ? '+' : ''}$${(data.value * data.change / 100).toFixed(2)} (${data.change >= 0 ? '+' : ''}${data.change.toFixed(2)}%)
+                    </td>
+                    <td>1x</td>
+                </tr>
+            `).join('');
         }
 
         function setupEventListeners() {
