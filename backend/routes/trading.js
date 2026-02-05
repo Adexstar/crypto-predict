@@ -82,10 +82,11 @@ router.get('/portfolio', authenticate, async (req, res) => {
         data: {
           userId,
           assets: {
-            USDT: 10000  // Starting balance
+            USDT: 0  // New users start with $0 - fresh portfolio
           }
         }
       });
+      console.log(`✅ Fresh portfolio created for user ${userId} with $0 balance`);
     }
     
     res.json({
