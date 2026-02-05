@@ -834,22 +834,7 @@
                 </thead>
                 <tbody id="transactionHistory">
                     <tr>
-                        <td>2024-01-15 14:32</td>
-                        <td>Buy BTC</td>
-                        <td>0.5 BTC</td>
-                        <td style="color: var(--primary-green);">✓ Completed</td>
-                    </tr>
-                    <tr>
-                        <td>2024-01-14 09:15</td>
-                        <td>Deposit</td>
-                        <td>$5,000</td>
-                        <td style="color: var(--primary-green);">✓ Completed</td>
-                    </tr>
-                    <tr>
-                        <td>2024-01-13 16:44</td>
-                        <td>Buy ETH</td>
-                        <td>5 ETH</td>
-                        <td style="color: var(--primary-green);">✓ Completed</td>
+                        <td colspan="4" style="text-align: center; color: var(--text-muted);">Loading transactions...</td>
                     </tr>
                 </tbody>
             </table>
@@ -860,6 +845,7 @@
     <script>
         let portfolio = { USDT: 0 };
         let allPrices = {};
+        let userBalanceData = {};  // Store real balance data from backend
 
         function getAuthToken() {
             return localStorage.getItem('token') || localStorage.getItem('authToken');
@@ -877,6 +863,7 @@
             await loadUserData();
             await loadPortfolio();
             await loadMarkets();
+            await loadTransactionHistory();  // Load real history
             updateUI();
             setupEventListeners();
             
@@ -884,6 +871,7 @@
             setInterval(async () => {
                 await loadPortfolio();
                 await loadMarkets();
+                await loadTransactionHistory();  // Refresh history too
                 updateUI();
             }, 2000);
         });
@@ -891,18 +879,24 @@
         async function loadUserData() {
             try {
                 const token = getAuthToken();
-                const response = await fetch(`${API_CONFIG.BASE_URL}/api/auth/verify`, {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/api/user/profile`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Auth failed: ${response.status}`);
+                    throw new Error(`User profile fetch failed: ${response.status}`);
                 }
-                console.log('✅ User authenticated');
+
+                const data = await response.json();
+                userBalanceData = data.user || {};
+                console.log('✅ User profile loaded:', {
+                    testingBalance: userBalanceData.testingBalance,
+                    balance: userBalanceData.balance,
+                    spotBalance: userBalanceData.spotBalance
+                });
             } catch (error) {
-                console.error('❌ Auth error:', error);
-                localStorage.clear();
-                window.location.href = 'login.html';
+                console.error('❌ User profile error:', error);
+                userBalanceData = {};
             }
         }
 
@@ -966,6 +960,110 @@
             }
         }
 
+        async function loadTransactionHistory() {
+            try {
+                const token = getAuthToken();
+                const response = await fetch(`${API_CONFIG.BASE_URL}/api/user/history?limit=50`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    console.warn(`❌ History API returned ${response.status}`);
+                    renderTransactionHistory([]);
+                    return;
+                }
+
+                const data = await response.json();
+                const history = data.history || [];
+                console.log('✅ Transaction history loaded:', history.length, 'items');
+                renderTransactionHistory(history);
+            } catch (error) {
+                console.error('❌ History fetch error:', error);
+                renderTransactionHistory([]);  // Show empty state
+            }
+        }
+
+        function renderTransactionHistory(history) {
+            const tbody = document.getElementById('transactionHistory');
+            
+            if (!history || history.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No transactions yet. Start by depositing funds or making your first trade!</td></tr>';
+                return;
+            }
+
+            const rows = history.slice(0, 20).map(tx => {
+                const date = new Date(tx.createdAt);
+                const timeStr = date.toLocaleString('en-US', { 
+                    month: '2-digit', 
+                    day: '2-digit', 
+                    hour: '2-digit', 
+                    minute: '2-digit'
+                });
+
+                // Parse transaction type and amount from action and message
+                let type = '';
+                let amount = '';
+                let statusColor = 'var(--primary-green)';
+                let statusText = '✓ Completed';
+
+                if (tx.action) {
+                    // action format: "deposit", "buy.market", "sell.market", "withdrawal", etc.
+                    const actionParts = tx.action.split('.');
+                    const baseAction = actionParts[0].toUpperCase();
+                    
+                    if (tx.action.includes('deposit')) {
+                        type = '💰 Deposit';
+                        amount = tx.meta?.amount ? `$${parseFloat(tx.meta.amount).toFixed(2)}` : '';
+                    } else if (tx.action.includes('withdrawal')) {
+                        type = '🏦 Withdrawal';
+                        amount = tx.meta?.amount ? `$${parseFloat(tx.meta.amount).toFixed(2)}` : '';
+                    } else if (tx.action.includes('buy') || tx.action.includes('BUY')) {
+                        const symbol = tx.meta?.symbol || 'BTC';
+                        const qty = tx.meta?.quantity ? parseFloat(tx.meta.quantity).toFixed(8) : '';
+                        type = `📈 Buy ${symbol}`;
+                        amount = qty ? `${qty} ${symbol}` : '';
+                    } else if (tx.action.includes('sell') || tx.action.includes('SELL')) {
+                        const symbol = tx.meta?.symbol || 'BTC';
+                        const qty = tx.meta?.quantity ? parseFloat(tx.meta.quantity).toFixed(8) : '';
+                        type = `📉 Sell ${symbol}`;
+                        amount = qty ? `${qty} ${symbol}` : '';
+                    } else if (tx.action.includes('profit') || tx.action.includes('PROFIT')) {
+                        type = '🤖 AI Profit';
+                        amount = tx.meta?.amount ? `+$${parseFloat(tx.meta.amount).toFixed(2)}` : '';
+                        statusColor = '#27ae60';
+                    } else if (tx.action.includes('transfer')) {
+                        type = '↔️ Transfer';
+                        amount = tx.meta?.amount ? `$${parseFloat(tx.meta.amount).toFixed(2)}` : '';
+                    } else {
+                        type = baseAction;
+                        // Try to extract amount from message
+                        if (tx.meta?.amount) {
+                            amount = `$${parseFloat(tx.meta.amount).toFixed(2)}`;
+                        }
+                    }
+                }
+
+                // If still no amount, try message
+                if (!amount && tx.message) {
+                    const amountMatch = tx.message.match(/\$?([\d,\.]+)/);
+                    if (amountMatch) {
+                        amount = `$${parseFloat(amountMatch[1]).toFixed(2)}`;
+                    }
+                }
+
+                return `
+                    <tr>
+                        <td>${timeStr}</td>
+                        <td style="font-weight: 500;">${type}</td>
+                        <td>${amount || '—'}</td>
+                        <td style="color: ${statusColor};">${statusText}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.innerHTML = rows;
+        }
+
         function updateUI() {
             // Calculate total - ALWAYS use latest portfolio data
             let totalBalance = portfolio.USDT || 0;
@@ -994,6 +1092,8 @@
                 USDT: portfolio.USDT,
                 totalBalance: totalBalance,
                 cryptoValue: totalCryptoValue,
+                testingBalance: userBalanceData.testingBalance,
+                spotBalance: userBalanceData.spotBalance,
                 isFreshUser: portfolio.USDT === 0 && totalCryptoValue === 0
             });
 
@@ -1002,9 +1102,12 @@
             document.getElementById('totalBalance').textContent = totalBalanceValue.toFixed(2);
             document.getElementById('usdBalance').textContent = `$${(portfolio.USDT || 0).toFixed(2)}`;
             
-            // Update account overview with REAL values
-            const testingBalance = portfolio.USDT * 0.1;
-            const depositedBalance = portfolio.USDT * 0.9;
+            // Update account overview with REAL values from backend
+            // Use actual testing and spot balances if available, otherwise calculate
+            const testingBalance = userBalanceData.testingBalance || 0;
+            const spotBalance = userBalanceData.spotBalance || (portfolio.USDT || 0);
+            const depositedBalance = spotBalance - testingBalance;
+            
             document.getElementById('testingBalance').textContent = `$${testingBalance.toFixed(2)}`;
             document.getElementById('depositedBalance').textContent = `$${depositedBalance.toFixed(2)}`;
             document.getElementById('totalAccountValue').textContent = `$${totalBalanceValue.toFixed(2)}`;
